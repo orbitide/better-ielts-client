@@ -1,5 +1,6 @@
 import { AppSidebar } from '@/components/layout/AppSidebar'
 import { AppHeader } from '@/components/layout/AppHeader'
+import { AppFooter } from '@/components/layout/AppFooter'
 import { AuthGate } from '@/components/layout/AuthGate'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -17,6 +18,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <main className="flex-1 overflow-y-auto">
             {children}
           </main>
+          <AppFooter />
         </div>
       </div>
     </AuthGate>
