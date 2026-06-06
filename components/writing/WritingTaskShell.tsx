@@ -12,6 +12,7 @@ import type { WritingTask } from '@/lib/types/writing'
 import { Clock, CheckCircle, BookOpen, RotateCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import { ResizableSplitPane } from '@/components/shared/ResizableSplitPane'
 
 const MOCK_FEEDBACK = {
   overallBand: 6.5,
@@ -175,27 +176,20 @@ export function WritingTaskShell({ task }: { task: WritingTask }) {
       </div>
 
       {/* Body */}
-      <div className="flex flex-1 overflow-hidden flex-col lg:flex-row">
-        {/* Prompt */}
-        <div className="w-full lg:w-96 border-b lg:border-b-0 lg:border-r p-4 shrink-0 overflow-y-auto">
+      <div className="flex flex-1 overflow-hidden flex-col lg:hidden">
+        <div className="border-b p-4 max-h-48 overflow-y-auto shrink-0">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Task Prompt</p>
           <p className="text-sm leading-relaxed mb-4">{task.prompt}</p>
-          {task.type === 'task1' && (
-            <img
-              src={task.imageUrl}
-              alt={task.imageAlt}
-              className="w-full rounded-lg border object-cover"
-            />
+          {task.type === 'task1' && task.imageUrl && (
+            <img src={task.imageUrl} alt={task.imageAlt} className="w-full rounded-lg border object-cover" />
           )}
         </div>
-
-        {/* Editor */}
-        <div className="flex-1 flex flex-col p-4">
+        <div className="flex flex-1 flex-col p-4 min-h-0">
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Start writing your response here..."
-            className="flex-1 resize-none text-sm leading-relaxed font-serif min-h-64 lg:min-h-0"
+            className="flex-1 resize-none text-sm leading-relaxed font-serif min-h-64"
           />
           <div className="mt-3">
             <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
@@ -205,6 +199,43 @@ export function WritingTaskShell({ task }: { task: WritingTask }) {
             <Progress value={wordProgress} className="h-1.5" />
           </div>
         </div>
+      </div>
+
+      <div className="hidden lg:flex flex-1 overflow-hidden">
+        <ResizableSplitPane
+          storageKey="writing-split-percent"
+          defaultLeftPercent={38}
+          minLeftPercent={25}
+          maxLeftPercent={55}
+          left={
+            <ScrollArea className="h-full">
+              <div className="p-4">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Task Prompt</p>
+                <p className="text-sm leading-relaxed mb-4">{task.prompt}</p>
+                {task.type === 'task1' && task.imageUrl && (
+                  <img src={task.imageUrl} alt={task.imageAlt} className="w-full rounded-lg border object-cover" />
+                )}
+              </div>
+            </ScrollArea>
+          }
+          right={
+            <div className="flex h-full flex-col p-4">
+              <Textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Start writing your response here..."
+                className="flex-1 resize-none text-sm leading-relaxed font-serif min-h-0"
+              />
+              <div className="mt-3 shrink-0">
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
+                  <span>Word count progress</span>
+                  <span>{wordCount} / {task.wordMinimum} minimum</span>
+                </div>
+                <Progress value={wordProgress} className="h-1.5" />
+              </div>
+            </div>
+          }
+        />
       </div>
 
       {/* Footer */}

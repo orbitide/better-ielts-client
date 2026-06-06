@@ -12,6 +12,7 @@ import { TfngQuestion } from './TfngQuestion'
 import { MatchingQuestion } from './MatchingQuestion'
 import { FillBlankQuestion } from './FillBlankQuestion'
 import { AnswerReview } from './AnswerReview'
+import { ResizableSplitPane } from '@/components/shared/ResizableSplitPane'
 import type { ReadingTest } from '@/lib/types/reading'
 import { ChevronLeft, ChevronRight, Clock, CheckCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -109,38 +110,42 @@ export function ReadingTestShell({ test }: ReadingTestShellProps) {
         </div>
       </div>
 
-      {/* Split pane */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Passage */}
-        <ScrollArea className="flex-1 border-r">
-          <div className="p-6 max-w-2xl">
-            <h2 className="text-lg font-bold mb-4">{currentSection.passage.title}</h2>
-            <div className="prose prose-sm dark:prose-invert max-w-none">
-              {currentSection.passage.body.split('\n\n').map((para, i) => (
-                <p key={i} className="mb-4 leading-relaxed text-sm">
-                  {para}
-                </p>
-              ))}
+      <ResizableSplitPane
+        storageKey="reading-split-percent"
+        defaultLeftPercent={62}
+        minLeftPercent={35}
+        maxLeftPercent={78}
+        left={
+          <ScrollArea className="h-full">
+            <div className="p-6">
+              <h2 className="text-lg font-bold mb-4">{currentSection.passage.title}</h2>
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                {currentSection.passage.body.split('\n\n').map((para, i) => (
+                  <p key={i} className="mb-4 leading-relaxed text-sm">
+                    {para}
+                  </p>
+                ))}
+              </div>
             </div>
-          </div>
-        </ScrollArea>
-
-        {/* Questions */}
-        <ScrollArea className="w-full max-w-sm lg:max-w-md shrink-0">
-          <div className="p-4 space-y-4">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Questions {currentSection.questions[0]?.questionNumber}–{currentSection.questions[currentSection.questions.length - 1]?.questionNumber}
-            </p>
-            {currentSection.questions.map((q) => {
-              if (q.type === 'mcq') return <McqQuestion key={q.id} question={q} />
-              if (q.type === 'tfng') return <TfngQuestion key={q.id} question={q} />
-              if (q.type === 'matching') return <MatchingQuestion key={q.id} question={q} />
-              if (q.type === 'fill-blank') return <FillBlankQuestion key={q.id} question={q} />
-              return null
-            })}
-          </div>
-        </ScrollArea>
-      </div>
+          </ScrollArea>
+        }
+        right={
+          <ScrollArea className="h-full">
+            <div className="p-4 space-y-4">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Questions {currentSection.questions[0]?.questionNumber}–{currentSection.questions[currentSection.questions.length - 1]?.questionNumber}
+              </p>
+              {currentSection.questions.map((q) => {
+                if (q.type === 'mcq') return <McqQuestion key={q.id} question={q} />
+                if (q.type === 'tfng') return <TfngQuestion key={q.id} question={q} />
+                if (q.type === 'matching') return <MatchingQuestion key={q.id} question={q} />
+                if (q.type === 'fill-blank') return <FillBlankQuestion key={q.id} question={q} />
+                return null
+              })}
+            </div>
+          </ScrollArea>
+        }
+      />
 
       {/* Footer navigation */}
       <div className="flex items-center justify-between px-4 py-3 border-t bg-background shrink-0">
