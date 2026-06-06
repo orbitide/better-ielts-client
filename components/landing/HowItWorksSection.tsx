@@ -5,7 +5,7 @@ const steps = [
     icon: ClipboardList,
     step: '01',
     title: 'Diagnose your weaknesses',
-    description: 'Take a 20-minute diagnostic test across all four skills. We pinpoint exactly which question types are costing you bands — before you study anything.',
+    description: 'A 20-minute test identifies exactly which question types are costing you bands.',
     detail: 'e.g. "You drop 4+ marks on TFNG questions and Task 2 Task Response"',
     color: 'text-violet-600 dark:text-violet-400',
     bg: 'bg-violet-50 dark:bg-violet-950/30',
@@ -15,7 +15,7 @@ const steps = [
     icon: BookOpen,
     step: '02',
     title: 'Follow a personalised plan',
-    description: 'Your daily study plan targets weak areas first and schedules band-appropriate practice — not generic exercises. Each session is 30–60 minutes.',
+    description: 'Your plan targets weak areas first with band-appropriate practice — not generic exercises.',
     detail: '7-day rolling plan, adjusts as you improve',
     color: 'text-blue-600 dark:text-blue-400',
     bg: 'bg-blue-50 dark:bg-blue-950/30',
@@ -25,7 +25,7 @@ const steps = [
     icon: FlaskConical,
     step: '03',
     title: 'Practice with real exam format',
-    description: 'Every exercise mirrors the actual IELTS format — same question types, same word limits, same timing. Writing submissions get AI feedback scored against all four marking criteria.',
+    description: 'Every exercise mirrors the real exam format. Writing gets AI feedback scored against all four marking criteria.',
     detail: '40+ Reading tests · 20+ Listening tests · AI Writing feedback',
     color: 'text-emerald-600 dark:text-emerald-400',
     bg: 'bg-emerald-50 dark:bg-emerald-950/30',
@@ -35,7 +35,7 @@ const steps = [
     icon: Trophy,
     step: '04',
     title: 'Sit a full mock test',
-    description: 'When you\'re ready, run a 165-minute timed mock test. See your predicted band per skill, review every answer, and understand exactly where you stand before the real exam.',
+    description: 'A full 165-minute mock test shows your predicted band per skill and where you stand before the real exam.',
     detail: 'Listening · Reading · Writing · Speaking — all in one session',
     color: 'text-amber-600 dark:text-amber-400',
     bg: 'bg-amber-50 dark:bg-amber-950/30',
@@ -52,7 +52,7 @@ export function HowItWorksSection() {
             How Better IELTS works
           </h2>
           <p className="text-muted-foreground text-lg">
-            Most people fail IELTS not because they lack English — but because they practise the wrong things. Our structured system fixes that.
+            Most IELTS failures come from practising the wrong things. Our structured system fixes that.
           </p>
         </div>
 
