@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookOpen } from 'lucide-react'
+import { BrandMark } from './BrandMark'
 
 const footerLinks = {
   Product: [
@@ -33,9 +33,7 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 font-bold text-lg mb-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <BookOpen className="h-4 w-4 text-primary-foreground" />
-              </div>
+              <BrandMark />
               <span>Better IELTS</span>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">

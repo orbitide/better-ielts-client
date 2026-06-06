@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookOpen } from 'lucide-react'
+import { BrandMark } from './BrandMark'
 import { NavLink } from './NavLink'
 import { ThemeToggle } from './ThemeToggle'
 import { buttonVariants } from '@/components/ui/button-variants'
@@ -21,9 +21,7 @@ export function PublicNav() {
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 font-bold text-lg shrink-0">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <BookOpen className="h-4 w-4 text-primary-foreground" />
-            </div>
+            <BrandMark />
             <span className="hidden sm:block">Better IELTS</span>
           </Link>
 
