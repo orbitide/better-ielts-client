@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Better IELTS
+
+A production-quality IELTS learning platform frontend built with Next.js 16. Uses mock/dummy data only — no backend, no database, no real API calls.
+
+## Tech Stack
+
+| | |
+|---|---|
+| Framework | Next.js 16.2.7 (Turbopack, App Router) |
+| UI | React 19, TypeScript, Tailwind v4, @base-ui/react |
+| Charts | Recharts |
+| State | Zustand |
+| Icons | lucide-react |
+
+## Architecture
+
+- **`lib/mock/`** — typed static data (users, tests, courses, vocabulary, etc.)
+- **`lib/data/`** — async `react.cache` wrappers over mock data; all pages import from here only
+- **`lib/store/`** — Zustand stores for UI state, simulated auth, and active test session
+- **`app/(marketing)/`** — public pages wrapped with `PublicNav` + `Footer`
+- **`app/(app)/`** — authenticated pages wrapped with `AppSidebar` + `AppHeader`
+- All `page.tsx` files are Server Components; interactive shells are Client Components
+
+## Routes
+
+### Marketing (public)
+
+| Route | Page |
+|---|---|
+| `/` | Landing page |
+| `/courses` | Course catalogue |
+| `/practice` | Skill practice overview |
+| `/mock-tests` | Mock test listing |
+| `/vocabulary` | Vocabulary topics |
+| `/blog` | Blog posts |
+| `/pricing` | Pricing plans |
+| `/about` | About page |
+
+### App (simulated auth — always logged in)
+
+| Route | Page |
+|---|---|
+| `/dashboard` | Dashboard with band scores and study plan |
+| `/study-plan` | Weekly study plan |
+| `/lesson/[id]` | Lesson player |
+| `/reading/[testId]` | Reading test (timed, split-pane) |
+| `/listening/[testId]` | Listening test with audio player |
+| `/writing/[taskId]` | Writing editor with AI mock feedback |
+| `/speaking/[sessionId]` | Speaking session with recording interface |
+| `/mock-test/[id]` | Full 165-minute mock test |
+| `/vocabulary/[topic]` | Flashcard deck + vocab quiz |
+| `/community` | Community discussion board |
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+```
 
-## Learn More
+## Key Patterns
 
-To learn more about Next.js, take a look at the following resources:
+**`params` / `searchParams` are Promises in Next.js 16** — always `await` them in page components:
+```ts
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  ...
+}
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**`buttonVariants` for server components** — import from `@/components/ui/button-variants` (no `"use client"`), not from `@/components/ui/button`. Use `<Link className={buttonVariants({...})}>` instead of `<Button asChild><Link>` in server components to avoid hydration mismatches.

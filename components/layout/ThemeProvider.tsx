@@ -5,24 +5,20 @@ import { useUIStore } from '@/lib/store/ui-store'
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const theme = useUIStore((s) => s.theme)
+  const setTheme = useUIStore((s) => s.setTheme)
 
+  // On mount, resolve 'system' to the OS preference once and store it
   useEffect(() => {
-    const root = document.documentElement
-    const isDark =
-      theme === 'dark' ||
-      (theme === 'system' &&
-        window.matchMedia('(prefers-color-scheme: dark)').matches)
-    root.classList.toggle('dark', isDark)
-  }, [theme])
-
-  useEffect(() => {
-    if (theme !== 'system') return
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const handler = (e: MediaQueryListEvent) => {
-      document.documentElement.classList.toggle('dark', e.matches)
+    if (useUIStore.getState().theme === 'system') {
+      setTheme(
+        window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      )
     }
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark')
   }, [theme])
 
   return <>{children}</>
