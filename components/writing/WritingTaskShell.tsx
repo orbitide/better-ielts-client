@@ -3,16 +3,20 @@
 import { useState, useEffect, useRef } from 'react'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { CountdownTimer } from '@/components/shared/CountdownTimer'
 import { BandBadge } from '@/components/shared/BandBadge'
 import type { WritingTask } from '@/lib/types/writing'
-import { Clock, CheckCircle, BookOpen, RotateCcw } from 'lucide-react'
+import { Clock, CheckCircle, RotateCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { ResizableSplitPane } from '@/components/shared/ResizableSplitPane'
+import { ExamIntroScreen } from '@/components/exam/ExamIntroScreen'
+import { ExamToolbar } from '@/components/exam/ExamToolbar'
+import { ExamFooter } from '@/components/exam/ExamFooter'
+import { ExamResultsScreen } from '@/components/exam/ExamResultsScreen'
+import { examExitHrefs } from '@/lib/utils/exam-routes'
 
 const MOCK_FEEDBACK = {
   overallBand: 6.5,
@@ -53,127 +57,129 @@ export function WritingTaskShell({ task }: { task: WritingTask }) {
 
   if (!started) {
     return (
-      <div className="flex items-center justify-center min-h-full p-6">
-        <div className="max-w-lg w-full">
-          <div className="rounded-2xl border bg-card p-8">
-            <Badge variant="secondary" className="mb-4">
-              Writing {task.type === 'task1' ? 'Task 1' : 'Task 2'}
-            </Badge>
-            <h1 className="text-xl font-bold mb-3">{task.title}</h1>
-            <div className="rounded-lg bg-muted/50 p-4 mb-6">
-              <p className="text-sm leading-relaxed">{task.prompt}</p>
-            </div>
-            <div className="flex gap-6 text-sm text-muted-foreground mb-8">
-              <span className="flex items-center gap-1.5"><Clock className="h-4 w-4" />{task.timeMinutes} minutes</span>
-              <span className="flex items-center gap-1.5"><BookOpen className="h-4 w-4" />Minimum {task.wordMinimum} words</span>
-            </div>
-            <Button size="lg" className="w-full" onClick={() => setStarted(true)}>
-              Start Writing
-            </Button>
-          </div>
-        </div>
-      </div>
+      <ExamIntroScreen
+        module={`Writing — ${task.type === 'task1' ? 'Task 1' : 'Task 2'}`}
+        title={task.title}
+        meta={`${task.timeMinutes} minutes · Minimum ${task.wordMinimum} words`}
+        instructions={[
+          task.prompt,
+          task.type === 'task1'
+            ? 'Summarise the visual information in your own words.'
+            : 'Write a clear, well-structured essay with an introduction, body paragraphs, and conclusion.',
+          'The timer starts when you begin. Plan briefly, then write.',
+        ]}
+        onStart={() => setStarted(true)}
+        startLabel="Begin writing task"
+        exitHref={examExitHrefs.writing}
+      />
     )
   }
 
   if (submitted) {
     return (
-      <ScrollArea className="h-full">
-        <div className="p-6 max-w-3xl mx-auto space-y-6">
-          <div className="text-center py-4">
-            <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 mb-4">
-              <CheckCircle className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <h2 className="text-2xl font-bold mb-1">Submission Received</h2>
-            <p className="text-muted-foreground">Here is your AI feedback based on the IELTS marking criteria.</p>
-          </div>
-
-          {/* Overall score */}
-          <div className="rounded-xl border bg-card p-6 text-center">
-            <p className="text-sm text-muted-foreground mb-2">Estimated Band Score</p>
-            <BandBadge score={MOCK_FEEDBACK.overallBand} className="text-xl px-5 py-2" />
-            <p className="text-xs text-muted-foreground mt-2">Words written: {wordCount}</p>
-          </div>
-
-          {/* Criteria breakdown */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {MOCK_FEEDBACK.criteria.map((c) => (
-              <div key={c.name} className="rounded-xl border bg-card p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-semibold">{c.name}</p>
-                  <BandBadge score={c.band} />
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">{c.feedback}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Improvements */}
-          <div className="rounded-xl border bg-card p-5">
-            <h3 className="font-semibold mb-3">Key improvements</h3>
-            <ul className="space-y-2">
-              {MOCK_FEEDBACK.improvements.map((imp, i) => (
-                <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold mt-0.5">
-                    {i + 1}
-                  </span>
-                  {imp}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Your submission */}
-          {task.sampleAnswer && (
-            <div className="rounded-xl border bg-card p-5">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold">Sample Band 9 Answer</h3>
-                <Button variant="ghost" size="sm" onClick={() => setShowSample(!showSample)}>
-                  {showSample ? 'Hide' : 'Show'}
-                </Button>
-              </div>
-              {showSample && (
-                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-                  {task.sampleAnswer}
-                </p>
-              )}
-            </div>
-          )}
-
-          <div className="flex gap-3">
-            <Button variant="outline" className="gap-2 flex-1" asChild>
-              <Link href={`/writing/${task.id}`}>
-                <RotateCcw className="h-4 w-4" />
-                Try Again
-              </Link>
-            </Button>
-            <Button className="flex-1" asChild>
-              <Link href="/dashboard">Back to Dashboard</Link>
-            </Button>
-          </div>
+      <ExamResultsScreen
+        module={`Writing — ${task.type === 'task1' ? 'Task 1' : 'Task 2'}`}
+        title="Submission received"
+        subtitle={`${task.title} · AI feedback based on IELTS marking criteria`}
+        exitHref={examExitHrefs.writing}
+        exitLabel="Return to practice"
+        wide
+      >
+        <div className="rounded border border-black/8 bg-[#f8f8f8] p-6 text-center dark:border-white/8 dark:bg-[#161616]">
+          <p className="mb-2 text-sm text-muted-foreground">Estimated band score</p>
+          <BandBadge score={MOCK_FEEDBACK.overallBand} className="px-5 py-2 text-xl" />
+          <p className="mt-2 text-xs text-muted-foreground">Words written: {wordCount}</p>
         </div>
-      </ScrollArea>
+
+        <div className="mt-6 space-y-4">
+          {MOCK_FEEDBACK.criteria.map((c) => (
+            <div
+              key={c.name}
+              className="rounded border border-black/8 bg-[#f8f8f8] p-4 dark:border-white/8 dark:bg-[#161616]"
+            >
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <p className="min-w-0 text-sm font-semibold">{c.name}</p>
+                <BandBadge score={c.band} className="shrink-0" />
+              </div>
+              <p className="text-sm leading-relaxed text-muted-foreground">{c.feedback}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6 rounded border border-black/8 bg-[#f8f8f8] p-5 dark:border-white/8 dark:bg-[#161616]">
+          <h3 className="mb-3 font-semibold">Key improvements</h3>
+          <ul className="space-y-2">
+            {MOCK_FEEDBACK.improvements.map((imp, i) => (
+              <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground">
+                <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-[#2b2f36]/10 text-xs font-bold text-[#2b2f36] dark:text-white/80">
+                  {i + 1}
+                </span>
+                {imp}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {text.trim() && (
+          <div className="mt-6 rounded border border-black/8 bg-[#f8f8f8] p-5 dark:border-white/8 dark:bg-[#161616]">
+            <h3 className="mb-3 font-semibold">Your response</h3>
+            <p className="whitespace-pre-wrap font-serif text-sm leading-relaxed text-foreground/90">
+              {text}
+            </p>
+          </div>
+        )}
+
+        {task.sampleAnswer && (
+          <div className="mt-6 rounded border border-black/8 bg-[#f8f8f8] p-5 dark:border-white/8 dark:bg-[#161616]">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h3 className="font-semibold">Sample band 9 answer</h3>
+              <Button variant="ghost" size="sm" onClick={() => setShowSample(!showSample)}>
+                {showSample ? 'Hide' : 'Show'}
+              </Button>
+            </div>
+            {showSample && (
+              <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                {task.sampleAnswer}
+              </p>
+            )}
+          </div>
+        )}
+
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <Button variant="outline" className="flex-1 gap-2 rounded-md" asChild>
+            <Link href={`/writing/${task.id}`}>
+              <RotateCcw className="size-4" />
+              Try again
+            </Link>
+          </Button>
+          <Button
+            className="flex-1 rounded-md bg-[#2b2f36] text-white hover:bg-[#3a3f48]"
+            asChild
+          >
+            <Link href={examExitHrefs.writing}>Return to practice</Link>
+          </Button>
+        </div>
+      </ExamResultsScreen>
     )
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/50 shrink-0 flex-wrap gap-2">
-        <Badge variant="secondary">Writing {task.type === 'task1' ? 'Task 1' : 'Task 2'}</Badge>
-        <div className="flex items-center gap-4 text-sm">
-          <span className={cn(
-            'font-medium',
-            wordCount >= task.wordMinimum ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
-          )}>
-            {wordCount} / {task.wordMinimum} words
-          </span>
-          <div className="flex items-center gap-1.5">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <CountdownTimer seconds={timeLeft} warningThreshold={300} />
+    <div className="flex h-full flex-col">
+      <ExamToolbar
+        module={`Writing — ${task.type === 'task1' ? 'Task 1' : 'Task 2'}`}
+        exitHref={examExitHrefs.writing}
+        trailing={
+          <div className="flex items-center gap-4 text-sm text-white/90">
+            <span className={cn('font-mono tabular-nums', wordCount >= task.wordMinimum ? 'text-white' : 'text-white/60')}>
+              {wordCount}/{task.wordMinimum} words
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Clock className="size-3.5 text-white/60" />
+              <CountdownTimer seconds={timeLeft} warningThreshold={300} className="text-white" />
+            </span>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* Body */}
       <div className="flex flex-1 overflow-hidden flex-col lg:hidden">
@@ -201,14 +207,15 @@ export function WritingTaskShell({ task }: { task: WritingTask }) {
         </div>
       </div>
 
-      <div className="hidden lg:flex flex-1 overflow-hidden">
+      <div className="hidden flex-1 overflow-hidden lg:flex">
         <ResizableSplitPane
           storageKey="writing-split-percent"
           defaultLeftPercent={38}
           minLeftPercent={25}
           maxLeftPercent={55}
+          className="bg-[#f8f8f8] dark:bg-[#181818]"
           left={
-            <ScrollArea className="h-full">
+            <ScrollArea className="h-full bg-white dark:bg-[#1e1e1e]">
               <div className="p-4">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Task Prompt</p>
                 <p className="text-sm leading-relaxed mb-4">{task.prompt}</p>
@@ -219,12 +226,12 @@ export function WritingTaskShell({ task }: { task: WritingTask }) {
             </ScrollArea>
           }
           right={
-            <div className="flex h-full flex-col p-4">
+            <div className="flex h-full flex-col bg-[#fafafa] p-4 dark:bg-[#161616]">
               <Textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Start writing your response here..."
-                className="flex-1 resize-none text-sm leading-relaxed font-serif min-h-0"
+                className="min-h-0 flex-1 resize-none border-black/10 bg-white text-sm leading-relaxed font-serif dark:border-white/10 dark:bg-[#1e1e1e]"
               />
               <div className="mt-3 shrink-0">
                 <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
@@ -238,17 +245,16 @@ export function WritingTaskShell({ task }: { task: WritingTask }) {
         />
       </div>
 
-      {/* Footer */}
-      <div className="flex items-center justify-end gap-3 px-4 py-3 border-t shrink-0">
+      <ExamFooter className="justify-end">
         <Button
           onClick={() => setSubmitted(true)}
           disabled={wordCount < Math.round(task.wordMinimum * 0.7)}
-          className="gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
+          className="gap-2 rounded-md bg-[#2b2f36] text-white hover:bg-[#3a3f48] disabled:opacity-50"
         >
-          <CheckCircle className="h-4 w-4" />
-          Submit Essay
+          <CheckCircle className="size-4" />
+          Submit response
         </Button>
-      </div>
+      </ExamFooter>
     </div>
   )
 }

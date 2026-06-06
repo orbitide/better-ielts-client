@@ -2,12 +2,15 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { BandBadge } from '@/components/shared/BandBadge'
 import type { MockTest } from '@/lib/types/mock-test'
 import { Headphones, BookMarked, PenLine, Mic, Clock, ChevronRight, CheckCircle, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { ExamIntroScreen } from '@/components/exam/ExamIntroScreen'
+import { ExamToolbar, ExamSectionTab } from '@/components/exam/ExamToolbar'
+import { ExamResultsScreen } from '@/components/exam/ExamResultsScreen'
+import { examExitHrefs } from '@/lib/utils/exam-routes'
 
 const skillIcon: Record<string, React.ElementType> = {
   listening: Headphones,
@@ -50,149 +53,154 @@ export function MockTestShell({ test }: { test: MockTest }) {
     }
   }
 
+  const resetTest = () => {
+    setStarted(false)
+    setFinished(false)
+    setCompletedSections(new Set())
+    setSectionIdx(0)
+  }
+
   if (!started) {
     return (
-      <div className="flex items-center justify-center min-h-full p-6">
-        <div className="max-w-lg w-full">
-          <div className="rounded-2xl border bg-card p-8">
-            <Badge variant="secondary" className="mb-4 capitalize">{test.type} IELTS</Badge>
-            <h1 className="text-2xl font-bold mb-2">{test.title}</h1>
-            <p className="text-muted-foreground text-sm mb-6">{test.description}</p>
-
-            <div className="space-y-3 mb-8">
-              {test.sections.map((section) => {
-                const Icon = skillIcon[section.skill] ?? BookMarked
-                return (
-                  <div key={section.id} className="flex items-center gap-3 rounded-lg border p-3 text-sm">
-                    <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="capitalize font-medium">{section.skill}</span>
-                    <span className="ml-auto text-muted-foreground flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5" />
-                      {section.durationMinutes} min
-                    </span>
-                  </div>
-                )
-              })}
-              <div className="flex items-center justify-between rounded-lg bg-primary/5 border border-primary/20 p-3 text-sm font-semibold">
-                <span>Total time</span>
-                <span>{test.durationMinutes} minutes</span>
-              </div>
-            </div>
-
-            <div className="p-4 bg-amber-50 dark:bg-amber-900/10 rounded-lg text-xs text-amber-700 dark:text-amber-300 mb-6">
-              <p className="font-semibold mb-1">Before you begin:</p>
-              <p>Find a quiet place, ensure you have 3+ hours free, and treat this like the real exam. Avoid pausing between sections.</p>
-            </div>
-
-            <Button size="lg" className="w-full" onClick={() => setStarted(true)}>
-              Begin Mock Test
-            </Button>
-          </div>
-        </div>
-      </div>
+      <ExamIntroScreen
+        module={`${test.type} IELTS Mock Test`}
+        title={test.title}
+        meta={`${test.sections.length} sections · ${test.durationMinutes} minutes total`}
+        instructions={[
+          test.description,
+          ...test.sections.map(
+            (s) =>
+              `${s.skill.charAt(0).toUpperCase() + s.skill.slice(1)}: ${s.durationMinutes} minutes`,
+          ),
+          'Find a quiet place and treat this like the real exam. Avoid pausing between sections.',
+        ]}
+        onStart={() => setStarted(true)}
+        startLabel="Begin mock test"
+        exitHref={examExitHrefs.mockTest}
+      />
     )
   }
 
   if (finished) {
     return (
-      <div className="flex items-center justify-center min-h-full p-6">
-        <div className="max-w-lg w-full space-y-6">
-          <div className="text-center">
-            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 mb-4">
-              <CheckCircle className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <h2 className="text-2xl font-bold mb-2">Mock Test Complete!</h2>
-            <p className="text-muted-foreground">Here are your estimated band scores.</p>
-          </div>
-
-          <div className="rounded-xl border bg-card p-6">
-            <div className="text-center mb-6">
-              <p className="text-sm text-muted-foreground mb-2">Overall Estimated Band</p>
-              <BandBadge score={MOCK_RESULTS.overall} className="text-2xl px-6 py-2.5" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {(['listening', 'reading', 'writing', 'speaking'] as const).map((skill) => {
-                const Icon = skillIcon[skill]
-                return (
-                  <div key={skill} className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2.5">
-                    <div className="flex items-center gap-2 text-sm capitalize">
-                      <Icon className="h-4 w-4 text-muted-foreground" />
-                      {skill}
-                    </div>
-                    <BandBadge score={MOCK_RESULTS[skill]} />
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <Button variant="outline" className="flex-1" onClick={() => { setStarted(false); setFinished(false); setCompletedSections(new Set()); setSectionIdx(0) }}>
-              Retake
-            </Button>
-            <Button className="flex-1" asChild>
-              <Link href="/dashboard">Back to Dashboard</Link>
-            </Button>
-          </div>
+      <ExamResultsScreen
+        module="Full Mock Test"
+        title="Mock test complete"
+        subtitle="Estimated band scores based on your performance"
+        exitHref={examExitHrefs.mockTest}
+        exitLabel="Return to mock tests"
+      >
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground mb-3">Overall estimated band</p>
+          <BandBadge score={MOCK_RESULTS.overall} className="text-2xl px-6 py-2.5" />
         </div>
-      </div>
+
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          {(['listening', 'reading', 'writing', 'speaking'] as const).map((skill) => {
+            const Icon = skillIcon[skill]
+            return (
+              <div
+                key={skill}
+                className="flex items-center justify-between rounded border border-black/8 bg-[#f8f8f8] px-3 py-2.5 dark:border-white/8 dark:bg-[#161616]"
+              >
+                <div className="flex items-center gap-2 text-sm capitalize">
+                  <Icon className="size-4 text-muted-foreground" />
+                  {skill}
+                </div>
+                <BandBadge score={MOCK_RESULTS[skill]} />
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="mt-6 flex gap-3">
+          <Button variant="outline" className="flex-1 rounded-md" onClick={resetTest}>
+            Retake
+          </Button>
+          <Button
+            className="flex-1 rounded-md bg-[#2b2f36] text-white hover:bg-[#3a3f48]"
+            asChild
+          >
+            <Link href={examExitHrefs.mockTest}>Return to mock tests</Link>
+          </Button>
+        </div>
+      </ExamResultsScreen>
     )
   }
 
   const Icon = skillIcon[currentSection.skill] ?? BookMarked
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Progress bar */}
-      <div className="px-4 py-3 border-b shrink-0">
-        <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-          <span>Section {sectionIdx + 1} of {test.sections.length}</span>
-          <span>{completedSections.size} completed</span>
+    <div className="flex h-full flex-col">
+      <ExamToolbar
+        module="Full Mock Test"
+        exitHref={examExitHrefs.mockTest}
+        center={
+          <>
+            {test.sections.map((s, i) => {
+              const SIcon = skillIcon[s.skill] ?? BookMarked
+              return (
+                <ExamSectionTab
+                  key={s.id}
+                  active={i === sectionIdx}
+                  onClick={() => !completedSections.has(i) && i <= sectionIdx && setSectionIdx(i)}
+                >
+                  <span className="inline-flex items-center gap-1 capitalize">
+                    {completedSections.has(i) && <CheckCircle className="size-3" />}
+                    <SIcon className="size-3" />
+                    {s.skill}
+                  </span>
+                </ExamSectionTab>
+              )
+            })}
+          </>
+        }
+        trailing={
+          <span className="text-xs text-white/60">
+            {completedSections.size}/{test.sections.length} done
+          </span>
+        }
+      />
+
+      <div className="border-b border-black/10 bg-white px-4 py-2 dark:border-white/10 dark:bg-[#1c1c1c]">
+        <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
+          <span>
+            Section {sectionIdx + 1} of {test.sections.length}
+          </span>
+          <span className="flex items-center gap-1">
+            <Clock className="size-3" />
+            {currentSection.durationMinutes} min
+          </span>
         </div>
-        <Progress value={progress} className="h-2" />
-        <div className="flex gap-2 mt-3 overflow-x-auto">
-          {test.sections.map((s, i) => {
-            const SIcon = skillIcon[s.skill] ?? BookMarked
-            return (
-              <div
-                key={s.id}
-                className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs border whitespace-nowrap ${
-                  i === sectionIdx ? 'bg-primary text-primary-foreground border-primary'
-                  : completedSections.has(i) ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800'
-                  : ''
-                }`}
-              >
-                {completedSections.has(i) && <CheckCircle className="h-3 w-3" />}
-                <SIcon className="h-3 w-3" />
-                <span className="capitalize">{s.skill}</span>
-              </div>
-            )
-          })}
-        </div>
+        <Progress value={progress} className="h-1.5" />
       </div>
 
-      {/* Current section */}
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="max-w-lg w-full text-center">
-          <div className="rounded-2xl border bg-card p-8">
-            <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-4">
-              <Icon className="h-7 w-7 text-primary" />
-            </div>
-            <h2 className="text-xl font-bold mb-1 capitalize">{currentSection.skill}</h2>
-            <p className="text-muted-foreground text-sm mb-6">
-              {currentSection.durationMinutes} minutes · Complete this section in your dedicated tab
-            </p>
-            <div className="flex gap-3">
-              <Button variant="outline" className="flex-1 gap-2" asChild>
-                <Link href={skillHref[currentSection.skill] ?? '/dashboard'} target="_blank">
-                  Open {currentSection.skill} test
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button className="flex-1 gap-2" onClick={markComplete}>
-                Mark as Done
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+      <div className="flex flex-1 items-center justify-center bg-[#f8f8f8] p-6 dark:bg-[#181818]">
+        <div className="w-full max-w-lg text-center">
+          <div className="overflow-hidden rounded border border-black/10 bg-white dark:border-white/10 dark:bg-[#1c1c1c]">
+            <div className="px-8 py-10">
+              <div className="mx-auto mb-4 inline-flex size-14 items-center justify-center rounded-full bg-[#2b2f36]/10">
+                <Icon className="size-7 text-[#2b2f36] dark:text-white/80" />
+              </div>
+              <h2 className="mb-1 text-xl font-semibold capitalize">{currentSection.skill}</h2>
+              <p className="mb-8 text-sm text-muted-foreground">
+                {currentSection.durationMinutes} minutes — complete this section, then return here
+              </p>
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1 gap-2 rounded-md" asChild>
+                  <Link href={skillHref[currentSection.skill] ?? '/dashboard'} target="_blank">
+                    Open {currentSection.skill}
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
+                <Button
+                  className="flex-1 gap-2 rounded-md bg-[#2b2f36] text-white hover:bg-[#3a3f48]"
+                  onClick={markComplete}
+                >
+                  Mark complete
+                  <ChevronRight className="size-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>

@@ -3,11 +3,12 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { CheckCircle2, XCircle, RotateCcw } from 'lucide-react'
 import type { ReadingTest } from '@/lib/types/reading'
 import { useTestStore } from '@/lib/store/test-store'
 import { BandBadge } from '@/components/shared/BandBadge'
+import { ExamResultsScreen } from '@/components/exam/ExamResultsScreen'
+import { examExitHrefs } from '@/lib/utils/exam-routes'
 
 interface AnswerReviewProps {
   test: ReadingTest
@@ -42,85 +43,103 @@ export function AnswerReview({ test, answers }: AnswerReviewProps) {
   const band = calculateBand(score, total)
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Results header */}
-      <div className="p-6 border-b bg-gradient-to-r from-primary/5 to-transparent">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-2xl font-bold mb-2">Test Complete!</h2>
-          <p className="text-muted-foreground mb-6">Here are your results for {test.title}</p>
-          <div className="flex items-center justify-center gap-8">
-            <div>
-              <p className="text-4xl font-extrabold text-primary">{score}/{total}</p>
-              <p className="text-sm text-muted-foreground">Correct answers</p>
-            </div>
-            <div>
-              <BandBadge score={band} className="text-lg px-4 py-2" />
-              <p className="text-sm text-muted-foreground mt-1">Estimated band</p>
-            </div>
-            <div>
-              <p className="text-4xl font-extrabold">{Math.round((score / total) * 100)}%</p>
-              <p className="text-sm text-muted-foreground">Accuracy</p>
-            </div>
-          </div>
-          <div className="flex justify-center gap-3 mt-6">
-            <Button variant="outline" onClick={resetTest} asChild className="gap-2">
-              <Link href="/reading/test-1">
-                <RotateCcw className="h-4 w-4" />
-                Retake
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link href="/dashboard">Back to Dashboard</Link>
-            </Button>
-          </div>
+    <ExamResultsScreen
+      module="Reading"
+      title="Reading test complete"
+      subtitle={test.title}
+      exitHref={examExitHrefs.reading}
+      exitLabel="Return to practice"
+    >
+      <div className="flex items-center justify-center gap-8 text-center">
+        <div>
+          <p className="text-3xl font-bold tabular-nums">
+            {score}/{total}
+          </p>
+          <p className="text-sm text-muted-foreground">Correct answers</p>
+        </div>
+        <div>
+          <BandBadge score={band} className="text-lg px-4 py-2" />
+          <p className="mt-1 text-sm text-muted-foreground">Estimated band</p>
+        </div>
+        <div>
+          <p className="text-3xl font-bold tabular-nums">
+            {Math.round((score / total) * 100)}%
+          </p>
+          <p className="text-sm text-muted-foreground">Accuracy</p>
         </div>
       </div>
 
-      {/* Answer breakdown */}
-      <ScrollArea className="flex-1">
-        <div className="p-6 max-w-2xl mx-auto space-y-6">
-          <h3 className="font-semibold">Answer Review</h3>
-          {test.sections.map((section) => (
-            <div key={section.id}>
-              <h4 className="text-sm font-semibold text-muted-foreground mb-3">
-                Passage {section.passageIndex}: {section.passage.title}
-              </h4>
-              <div className="space-y-2">
-                {section.questions.map((q) => {
-                  const userAnswer = answers[q.id]
-                  const correctAnswer = (q as any).correctAnswer
-                  const isCorrect = userAnswer?.trim().toLowerCase() === correctAnswer?.toLowerCase()
+      <div className="mt-8 space-y-6">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          Answer review
+        </h3>
+        {test.sections.map((section) => (
+          <div key={section.id}>
+            <h4 className="mb-3 text-sm font-medium text-foreground/80">
+              Passage {section.passageIndex}: {section.passage.title}
+            </h4>
+            <div className="space-y-2">
+              {section.questions.map((q) => {
+                const userAnswer = answers[q.id]
+                const correctAnswer = (q as any).correctAnswer
+                const isCorrect =
+                  userAnswer?.trim().toLowerCase() === correctAnswer?.toLowerCase()
 
-                  return (
-                    <div key={q.id} className="flex items-start gap-3 p-3 rounded-lg border text-sm">
-                      {isCorrect ? (
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                      ) : (
-                        <XCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground mb-1">Q{q.questionNumber}</p>
-                        {!isCorrect && (
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            {userAnswer && (
-                              <Badge variant="destructive" className="text-xs">
-                                Your answer: {userAnswer}
-                              </Badge>
-                            )}
-                            <Badge variant="secondary" className="text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
-                              Correct: {correctAnswer}
+                return (
+                  <div
+                    key={q.id}
+                    className="flex items-start gap-3 rounded border border-black/8 bg-[#f8f8f8] p-3 text-sm dark:border-white/8 dark:bg-[#161616]"
+                  >
+                    {isCorrect ? (
+                      <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600" />
+                    ) : (
+                      <XCircle className="mt-0.5 size-4 shrink-0 text-red-600" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-muted-foreground">Q{q.questionNumber}</p>
+                      {!isCorrect && (
+                        <div className="mt-1 flex flex-wrap gap-2">
+                          {userAnswer && (
+                            <Badge variant="destructive" className="text-xs">
+                              Your answer: {userAnswer}
                             </Badge>
-                          </div>
-                        )}
-                      </div>
+                          )}
+                          <Badge
+                            variant="secondary"
+                            className="bg-emerald-100 text-xs text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
+                          >
+                            Correct: {correctAnswer}
+                          </Badge>
+                        </div>
+                      )}
                     </div>
-                  )
-                })}
-              </div>
+                  </div>
+                )
+              })}
             </div>
-          ))}
-        </div>
-      </ScrollArea>
-    </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-8 flex gap-3">
+        <Button
+          variant="outline"
+          className="flex-1 gap-2 rounded-md"
+          onClick={resetTest}
+          asChild
+        >
+          <Link href={`/reading/${test.id}`}>
+            <RotateCcw className="size-4" />
+            Retake
+          </Link>
+        </Button>
+        <Button
+          className="flex-1 rounded-md bg-[#2b2f36] text-white hover:bg-[#3a3f48]"
+          asChild
+        >
+          <Link href={examExitHrefs.reading}>Return to practice</Link>
+        </Button>
+      </div>
+    </ExamResultsScreen>
   )
 }

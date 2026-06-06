@@ -10,8 +10,15 @@ import { BandBadge } from '@/components/shared/BandBadge'
 import { useTestStore } from '@/lib/store/test-store'
 import { useTestTimer } from '@/lib/hooks/use-timer'
 import type { ListeningTest, ListeningQuestion } from '@/lib/types/listening'
-import { Play, Pause, RotateCcw, ChevronRight, Clock, Volume2, Eye, EyeOff, CheckCircle } from 'lucide-react'
+import { Play, Pause, ChevronRight, Clock, Volume2, Eye, EyeOff, CheckCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ExamIntroScreen } from '@/components/exam/ExamIntroScreen'
+import { ExamToolbar, ExamSectionTab } from '@/components/exam/ExamToolbar'
+import { ExamFooter } from '@/components/exam/ExamFooter'
+import { ExamResultsScreen } from '@/components/exam/ExamResultsScreen'
+import { examExitHrefs } from '@/lib/utils/exam-routes'
+import Link from 'next/link'
+import { RotateCcw } from 'lucide-react'
 
 export function ListeningTestShell({ test }: { test: ListeningTest }) {
   const { startTest, answers, setAnswer, resetTest } = useTestStore()
@@ -69,80 +76,96 @@ export function ListeningTestShell({ test }: { test: ListeningTest }) {
 
   if (!started) {
     return (
-      <div className="flex items-center justify-center min-h-full p-6">
-        <div className="max-w-md w-full text-center">
-          <div className="rounded-2xl border bg-card p-8">
-            <Badge variant="secondary" className="mb-4">Listening Test</Badge>
-            <h1 className="text-2xl font-bold mb-2">{test.title}</h1>
-            <p className="text-muted-foreground text-sm mb-6">
-              {test.sections.length} sections · {allQuestions.length} questions · {test.durationMinutes} minutes
-            </p>
-            <div className="space-y-1.5 text-sm text-left mb-8 p-4 bg-muted/50 rounded-lg text-muted-foreground list-disc list-inside">
-              <p className="font-medium text-foreground mb-2">Instructions:</p>
-              <p>• You will hear each section once only</p>
-              <p>• Write answers as you listen — do not wait until the end</p>
-              <p>• Answers must follow the word limit where given</p>
-              <p>• Transcripts are available after each section</p>
-            </div>
-            <Button size="lg" className="w-full" onClick={handleStart}>
-              Start Listening Test
-            </Button>
-          </div>
-        </div>
-      </div>
+      <ExamIntroScreen
+        module="Listening"
+        title={test.title}
+        meta={`${test.sections.length} sections · ${allQuestions.length} questions · ${test.durationMinutes} minutes`}
+        instructions={[
+          'You will hear each section once only.',
+          'Write answers as you listen — do not wait until the end.',
+          'Answers must follow the word limit where given.',
+          'Transcripts are available after each section.',
+        ]}
+        onStart={handleStart}
+        startLabel="Begin listening test"
+        exitHref={examExitHrefs.listening}
+      />
     )
   }
 
   if (submitted) {
     const { score, band } = getScore()
     return (
-      <div className="flex items-center justify-center min-h-full p-6">
-        <div className="max-w-md w-full text-center rounded-2xl border bg-card p-8">
-          <h2 className="text-2xl font-bold mb-6">Test Complete!</h2>
-          <div className="flex items-center justify-center gap-8 mb-8">
-            <div>
-              <p className="text-4xl font-extrabold text-primary">{score}/{allQuestions.length}</p>
-              <p className="text-sm text-muted-foreground">Correct</p>
-            </div>
-            <div>
-              <BandBadge score={band} className="text-lg px-4 py-2" />
-              <p className="text-sm text-muted-foreground mt-1">Est. band</p>
-            </div>
+      <ExamResultsScreen
+        module="Listening"
+        title="Listening test complete"
+        subtitle={test.title}
+        exitHref={examExitHrefs.listening}
+        exitLabel="Return to practice"
+      >
+        <div className="flex items-center justify-center gap-8 text-center">
+          <div>
+            <p className="text-3xl font-bold tabular-nums">
+              {score}/{allQuestions.length}
+            </p>
+            <p className="text-sm text-muted-foreground">Correct</p>
           </div>
-          <Button asChild className="w-full" onClick={resetTest}>
-            <a href="/dashboard">Back to Dashboard</a>
+          <div>
+            <BandBadge score={band} className="text-lg px-4 py-2" />
+            <p className="mt-1 text-sm text-muted-foreground">Estimated band</p>
+          </div>
+        </div>
+        <div className="mt-8 flex gap-3">
+          <Button
+            variant="outline"
+            className="flex-1 gap-2 rounded-md"
+            onClick={resetTest}
+            asChild
+          >
+            <Link href={`/listening/${test.id}`}>
+              <RotateCcw className="size-4" />
+              Retake
+            </Link>
+          </Button>
+          <Button
+            className="flex-1 rounded-md bg-[#2b2f36] text-white hover:bg-[#3a3f48]"
+            asChild
+          >
+            <Link href={examExitHrefs.listening}>Return to practice</Link>
           </Button>
         </div>
-      </div>
+      </ExamResultsScreen>
     )
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/50 shrink-0 flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          {test.sections.map((s, i) => (
-            <button
-              key={s.id}
-              onClick={() => setSectionIdx(i)}
-              className={cn(
-                'text-xs px-3 py-1 rounded-full border transition-colors',
-                i === sectionIdx ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-accent'
-              )}
-            >
-              Section {s.sectionNumber}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-3 text-sm">
-          <Clock className="h-4 w-4 text-muted-foreground" />
-          <CountdownTimer seconds={timeRemaining} />
-        </div>
-      </div>
+    <div className="flex h-full flex-col">
+      <ExamToolbar
+        module="Listening"
+        exitHref={examExitHrefs.listening}
+        center={
+          <>
+            {test.sections.map((s, i) => (
+              <ExamSectionTab
+                key={s.id}
+                active={i === sectionIdx}
+                onClick={() => setSectionIdx(i)}
+              >
+                Section {s.sectionNumber}
+              </ExamSectionTab>
+            ))}
+          </>
+        }
+        trailing={
+          <span className="flex items-center gap-1.5 text-sm text-white/90">
+            <Clock className="size-3.5 text-white/60" />
+            <CountdownTimer seconds={timeRemaining} className="text-white" />
+          </span>
+        }
+      />
 
-      <ScrollArea className="flex-1">
-        <div className="p-6 max-w-2xl mx-auto space-y-6">
+      <ScrollArea className="flex-1 bg-[#f8f8f8] dark:bg-[#181818]">
+        <div className="mx-auto max-w-2xl space-y-6 p-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">Section {currentSection.sectionNumber}</h2>
             <Badge variant="secondary">{currentSection.questions.length} questions</Badge>
@@ -204,22 +227,36 @@ export function ListeningTestShell({ test }: { test: ListeningTest }) {
         </div>
       </ScrollArea>
 
-      {/* Footer */}
-      <div className="flex items-center justify-between px-4 py-3 border-t shrink-0">
-        <Button variant="outline" size="sm" onClick={() => setSectionIdx((i) => Math.max(0, i - 1))} disabled={sectionIdx === 0} className="gap-2">
+      <ExamFooter>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setSectionIdx((i) => Math.max(0, i - 1))}
+          disabled={sectionIdx === 0}
+          className="rounded-md border-black/15 bg-white dark:border-white/15 dark:bg-[#222]"
+        >
           Previous
         </Button>
         {sectionIdx < test.sections.length - 1 ? (
-          <Button size="sm" onClick={() => setSectionIdx((i) => i + 1)} className="gap-2">
-            Next Section <ChevronRight className="h-4 w-4" />
+          <Button
+            size="sm"
+            onClick={() => setSectionIdx((i) => i + 1)}
+            className="gap-2 rounded-md bg-[#2b2f36] text-white hover:bg-[#3a3f48]"
+          >
+            Next section
+            <ChevronRight className="size-4" />
           </Button>
         ) : (
-          <Button size="sm" onClick={() => setSubmitted(true)} className="gap-2 bg-emerald-600 hover:bg-emerald-700">
-            <CheckCircle className="h-4 w-4" />
-            Submit Test
+          <Button
+            size="sm"
+            onClick={() => setSubmitted(true)}
+            className="gap-2 rounded-md bg-[#2b2f36] text-white hover:bg-[#3a3f48]"
+          >
+            <CheckCircle className="size-4" />
+            Submit test
           </Button>
         )}
-      </div>
+      </ExamFooter>
     </div>
   )
 }
