@@ -1,77 +1,73 @@
 import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { cn } from '@/lib/utils'
+import { GraduationCap, Sparkles } from 'lucide-react'
 
 const bands = [
   {
     score: 9,
     label: 'Expert User',
     description: 'Full operational command. Appropriate, accurate, fluent.',
-    examples: [],
-    color: 'bg-violet-500',
-    textColor: 'text-violet-700 dark:text-violet-300',
-    bg: 'bg-violet-50 dark:bg-violet-950/40',
-    border: 'border-violet-200 dark:border-violet-800/30',
+    examples: [] as string[],
+    accent: 'bg-violet-500',
+    accentSoft: 'from-violet-500/8',
+    scoreText: 'text-violet-600 dark:text-violet-400',
   },
   {
     score: 8,
     label: 'Very Good User',
     description: 'Fully operational command. Occasional inaccuracies.',
     examples: ['Academic research roles', 'Senior academic entry'],
-    color: 'bg-blue-500',
-    textColor: 'text-blue-700 dark:text-blue-300',
-    bg: 'bg-blue-50 dark:bg-blue-950/40',
-    border: 'border-blue-200 dark:border-blue-800/30',
+    accent: 'bg-blue-500',
+    accentSoft: 'from-blue-500/8',
+    scoreText: 'text-blue-600 dark:text-blue-400',
   },
   {
     score: 7.5,
     label: 'Good User+',
     description: 'Good command in most situations.',
     examples: ['Medical / nursing registration', 'Legal professions'],
-    color: 'bg-emerald-500',
-    textColor: 'text-emerald-700 dark:text-emerald-300',
-    bg: 'bg-emerald-50 dark:bg-emerald-950/40',
-    border: 'border-emerald-200 dark:border-emerald-800/30',
+    accent: 'bg-primary',
+    accentSoft: 'from-primary/10',
+    scoreText: 'text-primary',
+    premium: true,
   },
   {
     score: 7,
     label: 'Good User',
     description: 'Operational command with occasional inaccuracies.',
     examples: ['Top universities (Oxford, Cambridge, LSE)', 'Australian skilled visa'],
-    color: 'bg-teal-500',
-    textColor: 'text-teal-700 dark:text-teal-300',
-    bg: 'bg-teal-50 dark:bg-teal-950/40',
-    border: 'border-teal-200 dark:border-teal-800/30',
+    accent: 'bg-emerald-600',
+    accentSoft: 'from-emerald-600/8',
+    scoreText: 'text-emerald-600 dark:text-emerald-400',
+    premium: true,
   },
   {
     score: 6.5,
     label: 'Competent User+',
     description: 'Generally effective command despite inaccuracies.',
     examples: ['Most UK study visas', 'Canadian Express Entry', 'RCUK universities'],
-    color: 'bg-amber-500',
-    textColor: 'text-amber-700 dark:text-amber-300',
-    bg: 'bg-amber-50 dark:bg-amber-950/40',
-    border: 'border-amber-200 dark:border-amber-800/30',
+    accent: 'bg-amber-500',
+    accentSoft: 'from-amber-500/8',
+    scoreText: 'text-amber-600 dark:text-amber-400',
   },
   {
     score: 6,
     label: 'Competent User',
     description: 'Generally effective command with noticeable errors.',
     examples: ['UK Skilled Worker visa', 'New Zealand residence'],
-    color: 'bg-orange-500',
-    textColor: 'text-orange-700 dark:text-orange-300',
-    bg: 'bg-orange-50 dark:bg-orange-950/40',
-    border: 'border-orange-200 dark:border-orange-800/30',
+    accent: 'bg-orange-500',
+    accentSoft: 'from-orange-500/8',
+    scoreText: 'text-orange-600 dark:text-orange-400',
   },
   {
     score: 5.5,
     label: 'Modest User',
     description: 'Partial command of the language.',
-    examples: [],
-    color: 'bg-red-400',
-    textColor: 'text-red-700 dark:text-red-300',
-    bg: 'bg-red-50 dark:bg-red-950/40',
-    border: 'border-red-200 dark:border-red-800/30',
+    examples: [] as string[],
+    accent: 'bg-red-400',
+    accentSoft: 'from-red-400/8',
+    scoreText: 'text-red-600 dark:text-red-400',
   },
 ]
 
@@ -81,7 +77,7 @@ export function BandScaleSection() {
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
           {/* Left — explanation */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 lg:sticky lg:top-24">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
               What does your band score mean?
             </h2>
@@ -97,28 +93,77 @@ export function BandScaleSection() {
           </div>
 
           {/* Right — band scale */}
-          <div className="lg:col-span-3 space-y-2">
+          <div className="lg:col-span-3 space-y-3">
             {bands.map((b) => (
-              <div key={b.score} className={`flex items-start gap-4 rounded-xl border ${b.border} ${b.bg} px-4 py-3`}>
-                <div className="flex flex-col items-center shrink-0">
-                  <div className={`h-8 w-8 rounded-full ${b.color} flex items-center justify-center text-white font-bold text-sm`}>
-                    {b.score}
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-2 flex-wrap">
-                    <span className={`font-semibold text-sm ${b.textColor}`}>{b.label}</span>
-                    <span className="text-xs text-muted-foreground">{b.description}</span>
-                  </div>
-                  {b.examples.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-1.5">
-                      {b.examples.map((ex) => (
-                        <span key={ex} className="text-xs bg-background/60 border rounded px-2 py-0.5 text-muted-foreground">
-                          {ex}
-                        </span>
-                      ))}
-                    </div>
+              <div
+                key={b.score}
+                className={cn(
+                  'group relative overflow-hidden rounded-2xl border bg-card transition-all duration-200',
+                  'hover:shadow-md hover:border-border/80',
+                  b.premium
+                    ? 'border-primary/20 shadow-sm ring-1 ring-primary/10'
+                    : 'border-border/60 shadow-sm',
+                )}
+              >
+                {/* Accent wash */}
+                <div
+                  className={cn(
+                    'pointer-events-none absolute inset-0 bg-gradient-to-r to-transparent opacity-60',
+                    b.accentSoft,
                   )}
+                />
+
+                {/* Left accent bar */}
+                <div className={cn('absolute left-0 top-0 bottom-0 w-1', b.accent)} />
+
+                <div className="relative flex items-start gap-5 p-5 pl-6">
+                  {/* Score */}
+                  <div className="flex shrink-0 flex-col items-center pt-0.5">
+                    <span
+                      className={cn(
+                        'text-3xl font-extrabold tabular-nums leading-none tracking-tight',
+                        b.scoreText,
+                      )}
+                    >
+                      {b.score}
+                    </span>
+                    <span className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+                      Band
+                    </span>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="hidden sm:block w-px self-stretch bg-border/60 shrink-0" />
+
+                  {/* Content */}
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-semibold text-foreground tracking-tight">{b.label}</h3>
+                      {b.premium && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                          <Sparkles className="size-2.5" />
+                          Target tier
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm leading-relaxed text-muted-foreground">{b.description}</p>
+
+                    {b.examples.length > 0 && (
+                      <ul className="flex flex-col gap-1.5 pt-1">
+                        {b.examples.map((ex) => (
+                          <li
+                            key={ex}
+                            className="flex items-start gap-2 text-xs text-foreground/80"
+                          >
+                            <GraduationCap
+                              className={cn('mt-0.5 size-3.5 shrink-0', b.scoreText)}
+                            />
+                            <span className="leading-snug">{ex}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
