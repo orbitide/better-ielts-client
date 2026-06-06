@@ -48,7 +48,14 @@ export function CtaSection() {
                   Start Preparing Free
                   <ArrowRight className="h-4 w-4" />
                 </Link>
-                <Link href="/pricing" className={cn(buttonVariants({ size: 'lg', variant: 'outline' }), 'text-base border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10')}>
+                <Link
+                  href="/pricing"
+                  className={cn(
+                    buttonVariants({ size: 'lg', variant: 'outline' }),
+                    'text-base bg-transparent border-primary-foreground/30 text-primary-foreground',
+                    'hover:bg-primary-foreground/15 hover:text-primary-foreground hover:border-primary-foreground/50',
+                  )}
+                >
                   See Pro plans
                 </Link>
               </div>

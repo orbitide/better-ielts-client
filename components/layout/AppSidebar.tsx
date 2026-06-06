@@ -48,7 +48,7 @@ export function AppSidebar({ className }: { className?: string }) {
               key={(item as { href: string }).href}
               href={(item as { href: string }).href}
             >
-              <Icon className="h-4 w-4 shrink-0" />
+              <Icon />
               <span>{item.label}</span>
             </SidebarNavLink>
           )
@@ -56,14 +56,11 @@ export function AppSidebar({ className }: { className?: string }) {
       </nav>
 
       {/* Bottom section */}
-      <div className="border-t p-3 shrink-0">
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-accent text-sm"
-        >
-          <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          <span className="text-muted-foreground">Progress</span>
-        </Link>
+      <div className="border-t border-sidebar-border p-3 shrink-0">
+        <SidebarNavLink href="/dashboard">
+          <BarChart3 />
+          <span>Progress</span>
+        </SidebarNavLink>
       </div>
     </aside>
   )
