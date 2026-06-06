@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { BrandMark } from './BrandMark'
+import { BrandName } from './BrandName'
 import { NavLink } from './NavLink'
 import { ThemeToggle } from './ThemeToggle'
 import { buttonVariants } from '@/components/ui/button-variants'
@@ -20,9 +21,9 @@ export function PublicNav() {
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 font-bold text-lg shrink-0">
+          <Link href="/" className="flex items-center gap-2 shrink-0">
             <BrandMark />
-            <span className="hidden sm:block">Better IELTS</span>
+            <BrandName className="hidden sm:inline-flex" />
           </Link>
 
           {/* Desktop nav */}
@@ -41,10 +42,10 @@ export function PublicNav() {
           {/* Right actions */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Link href="/dashboard" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'hidden sm:flex')}>
+            <Link href="/login" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'hidden sm:flex')}>
               Sign In
             </Link>
-            <Link href="/dashboard" className={buttonVariants({ size: 'sm' })}>
+            <Link href="/register" className={buttonVariants({ size: 'sm' })}>
               Get Started
             </Link>
           </div>

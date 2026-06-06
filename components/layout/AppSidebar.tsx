@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { BookOpen, LayoutDashboard, BookMarked, Headphones, PenLine, Mic, ClipboardList, Brain, Users, CalendarDays, BarChart3 } from 'lucide-react'
 import { BrandMark } from './BrandMark'
+import { BrandName } from './BrandName'
 import { SidebarNavLink } from './SidebarNavLink'
 import { cn } from '@/lib/utils'
 
@@ -25,9 +26,9 @@ export function AppSidebar({ className }: { className?: string }) {
     <aside className={cn('flex flex-col h-full', className)}>
       {/* Logo */}
       <div className="flex h-16 items-center gap-2 px-4 border-b shrink-0">
-        <Link href="/" className="flex items-center gap-2 font-bold">
+        <Link href="/" className="flex items-center gap-2">
           <BrandMark size="sm" />
-          <span className="text-sm">Better IELTS</span>
+          <BrandName size="sm" />
         </Link>
       </div>
 

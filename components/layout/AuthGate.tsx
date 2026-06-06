@@ -1,18 +1,20 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/store/auth-store'
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuthStore()
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.replace('/')
+      const redirect = encodeURIComponent(pathname)
+      router.replace(`/login?redirect=${redirect}`)
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, router, pathname])
 
   if (!isAuthenticated) return null
   return <>{children}</>

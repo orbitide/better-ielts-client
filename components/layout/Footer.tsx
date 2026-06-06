@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { BrandMark } from './BrandMark'
+import { BrandName } from './BrandName'
 
 const footerLinks = {
   Product: [
@@ -32,9 +33,9 @@ export function Footer() {
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:gap-12">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 font-bold text-lg mb-4">
+            <Link href="/" className="flex items-center gap-2 mb-4">
               <BrandMark />
-              <span>Better IELTS</span>
+              <BrandName />
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">
               The modern IELTS preparation platform. Achieve your target band score with structured learning and expert guidance.
