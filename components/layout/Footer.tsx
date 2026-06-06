@@ -18,10 +18,10 @@ const footerLinks = {
     { label: 'About Us', href: '/about' },
   ],
   Skills: [
-    { label: 'Reading', href: '/practice' },
-    { label: 'Listening', href: '/practice' },
-    { label: 'Writing', href: '/practice' },
-    { label: 'Speaking', href: '/practice' },
+    { label: 'Reading', href: '/practice/reading' },
+    { label: 'Listening', href: '/practice/listening' },
+    { label: 'Writing', href: '/practice/writing' },
+    { label: 'Speaking', href: '/practice/speaking' },
     { label: 'Vocabulary', href: '/vocabulary' },
   ],
 }

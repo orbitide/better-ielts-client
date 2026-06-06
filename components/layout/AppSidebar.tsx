@@ -9,10 +9,10 @@ const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/study-plan', label: 'Study Plan', icon: CalendarDays },
   { type: 'divider', label: 'Practice' },
-  { href: '/reading/test-1', label: 'Reading', icon: BookMarked },
-  { href: '/listening/test-1', label: 'Listening', icon: Headphones },
-  { href: '/writing/task2-1', label: 'Writing', icon: PenLine },
-  { href: '/speaking/session-1', label: 'Speaking', icon: Mic },
+  { href: '/practice/reading', label: 'Reading', icon: BookMarked, matchPaths: ['/practice/reading', '/reading'] },
+  { href: '/practice/listening', label: 'Listening', icon: Headphones, matchPaths: ['/practice/listening', '/listening'] },
+  { href: '/practice/writing', label: 'Writing', icon: PenLine, matchPaths: ['/practice/writing', '/writing'] },
+  { href: '/practice/speaking', label: 'Speaking', icon: Mic, matchPaths: ['/practice/speaking', '/speaking'] },
   { type: 'divider', label: 'Learn' },
   { href: '/courses', label: 'Courses', icon: BookOpen },
   { href: '/vocabulary/environment', label: 'Vocabulary', icon: Brain },
@@ -47,6 +47,7 @@ export function AppSidebar({ className }: { className?: string }) {
             <SidebarNavLink
               key={(item as { href: string }).href}
               href={(item as { href: string }).href}
+              matchPaths={(item as { matchPaths?: string[] }).matchPaths}
             >
               <Icon />
               <span>{item.label}</span>

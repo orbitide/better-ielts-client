@@ -3,8 +3,7 @@ import { BrandMark } from './BrandMark'
 import { BrandName } from './BrandName'
 import { NavLink } from './NavLink'
 import { ThemeToggle } from './ThemeToggle'
-import { buttonVariants } from '@/components/ui/button-variants'
-import { cn } from '@/lib/utils'
+import { PublicNavActions } from './PublicNavActions'
 
 const navLinks = [
   { href: '/courses', label: 'Courses' },
@@ -42,12 +41,7 @@ export function PublicNav() {
           {/* Right actions */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Link href="/login" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'hidden sm:flex')}>
-              Sign In
-            </Link>
-            <Link href="/register" className={buttonVariants({ size: 'sm' })}>
-              Get Started
-            </Link>
+            <PublicNavActions />
           </div>
         </div>
       </div>

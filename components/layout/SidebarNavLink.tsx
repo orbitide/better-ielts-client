@@ -6,14 +6,16 @@ import { cn } from '@/lib/utils'
 
 interface SidebarNavLinkProps {
   href: string
+  matchPaths?: string[]
   children: React.ReactNode
 }
 
-export function SidebarNavLink({ href, children }: SidebarNavLinkProps) {
+export function SidebarNavLink({ href, matchPaths, children }: SidebarNavLinkProps) {
   const pathname = usePathname()
-  const isActive =
-    pathname === href ||
-    (href !== '/dashboard' && pathname.startsWith(href.split('/').slice(0, 2).join('/')))
+  const prefixes = matchPaths ?? [href]
+  const isActive = prefixes.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  )
 
   return (
     <Link
