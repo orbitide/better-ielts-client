@@ -1,9 +1,8 @@
 import { Bell, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ThemeToggle } from './ThemeToggle'
 import { MobileNav } from './MobileNav'
-import { mockUser } from '@/lib/mock/users'
+import { ProfileMenu } from './ProfileMenu'
 
 export function AppHeader() {
   return (
@@ -30,12 +29,7 @@ export function AppHeader() {
           <Bell className="h-4 w-4" />
           <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
         </Button>
-        <Avatar className="h-8 w-8 cursor-pointer">
-          <AvatarImage src={mockUser.avatarUrl} alt={mockUser.name} />
-          <AvatarFallback className="text-xs bg-primary text-primary-foreground">
-            {mockUser.name.split(' ').map((n) => n[0]).join('')}
-          </AvatarFallback>
-        </Avatar>
+        <ProfileMenu />
       </div>
     </header>
   )
