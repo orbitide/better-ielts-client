@@ -1,13 +1,15 @@
-import { BookMarked, Headphones, PenLine, Mic } from 'lucide-react'
+import { BookMarked, Headphones, PenLine, Mic, Clock, Lightbulb, Zap } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 const skills = [
   {
     icon: BookMarked,
     skill: 'Reading',
     time: '60 min · 40 questions',
+    accent: 'bg-violet-500',
+    accentSoft: 'from-violet-500/8',
+    iconBg: 'bg-violet-500/10',
     color: 'text-violet-600 dark:text-violet-400',
-    bg: 'bg-violet-50 dark:bg-violet-950/30',
-    border: 'border-violet-200 dark:border-violet-800/40',
     questionTypes: [
       'True / False / Not Given',
       'Matching headings & features',
@@ -22,9 +24,10 @@ const skills = [
     icon: Headphones,
     skill: 'Listening',
     time: '40 min · 40 questions',
+    accent: 'bg-blue-500',
+    accentSoft: 'from-blue-500/8',
+    iconBg: 'bg-blue-500/10',
     color: 'text-blue-600 dark:text-blue-400',
-    bg: 'bg-blue-50 dark:bg-blue-950/30',
-    border: 'border-blue-200 dark:border-blue-800/40',
     questionTypes: [
       'Section 1: Social conversation',
       'Section 2: Monologue (non-academic)',
@@ -39,9 +42,11 @@ const skills = [
     icon: PenLine,
     skill: 'Writing',
     time: '60 min · 2 tasks',
-    color: 'text-orange-600 dark:text-orange-400',
-    bg: 'bg-orange-50 dark:bg-orange-950/30',
-    border: 'border-orange-200 dark:border-orange-800/40',
+    accent: 'bg-primary',
+    accentSoft: 'from-primary/10',
+    iconBg: 'bg-primary/10',
+    color: 'text-primary',
+    featured: true,
     questionTypes: [
       'Task 1 (20 min, 150 words min): Describe a chart, graph, process, or map',
       'Task 2 (40 min, 250 words min): Opinion, discussion, or problem-solution essay',
@@ -56,9 +61,10 @@ const skills = [
     icon: Mic,
     skill: 'Speaking',
     time: '11–14 min · 3 parts',
+    accent: 'bg-pink-500',
+    accentSoft: 'from-pink-500/8',
+    iconBg: 'bg-pink-500/10',
     color: 'text-pink-600 dark:text-pink-400',
-    bg: 'bg-pink-50 dark:bg-pink-950/30',
-    border: 'border-pink-200 dark:border-pink-800/40',
     questionTypes: [
       'Part 1 (4–5 min): Familiar topics — family, work, hobbies',
       'Part 2 (3–4 min): Cue card — 1 min prep, 2 min long turn',
@@ -79,42 +85,93 @@ export function FeaturesSection() {
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
             Master all four IELTS skills
           </h2>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-lg leading-relaxed">
             IELTS tests Reading, Listening, Writing, and Speaking separately. Each skill has its own format, timing, and scoring rules. Here&apos;s exactly what you&apos;ll face.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {skills.map((s) => {
             const Icon = s.icon
             return (
-              <div key={s.skill} className={`rounded-2xl border ${s.border} ${s.bg} p-7`}>
-                <div className="flex items-start gap-4 mb-5">
-                  <div className="rounded-xl bg-white dark:bg-zinc-900 shadow-sm p-3 shrink-0">
-                    <Icon className={`h-6 w-6 ${s.color}`} />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-0.5">{s.skill}</h3>
-                    <p className="text-sm text-muted-foreground font-medium">{s.time}</p>
-                  </div>
-                </div>
+              <div
+                key={s.skill}
+                className={cn(
+                  'group relative overflow-hidden rounded-2xl border bg-card transition-all duration-200',
+                  'hover:shadow-md hover:border-border/80',
+                  s.featured
+                    ? 'border-primary/20 shadow-sm ring-1 ring-primary/10'
+                    : 'border-border/60 shadow-sm',
+                )}
+              >
+                {/* Accent wash */}
+                <div
+                  className={cn(
+                    'pointer-events-none absolute inset-0 bg-gradient-to-br to-transparent opacity-70',
+                    s.accentSoft,
+                  )}
+                />
 
-                <ul className="space-y-1.5 mb-5">
-                  {s.questionTypes.map((qt) => (
-                    <li key={qt} className="flex items-start gap-2 text-sm text-muted-foreground">
-                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-current shrink-0 opacity-60" />
-                      {qt}
-                    </li>
-                  ))}
-                </ul>
+                {/* Top accent bar */}
+                <div className={cn('absolute left-0 right-0 top-0 h-1', s.accent)} />
 
-                <div className="space-y-2">
-                  <div className="rounded-lg bg-white/60 dark:bg-zinc-900/40 border border-current/10 px-4 py-3">
-                    <p className="text-xs font-semibold text-foreground/70 uppercase tracking-wider mb-1">Exam tip</p>
-                    <p className="text-sm text-muted-foreground">{s.tip}</p>
+                <div className="relative p-6 pt-7">
+                  {/* Header */}
+                  <div className="flex items-start justify-between gap-4 mb-6">
+                    <div className="flex items-start gap-4">
+                      <div
+                        className={cn(
+                          'flex size-12 shrink-0 items-center justify-center rounded-xl ring-1 ring-foreground/5',
+                          s.iconBg,
+                        )}
+                      >
+                        <Icon className={cn('size-5', s.color)} />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold tracking-tight text-foreground">{s.skill}</h3>
+                        <div className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                          <Clock className="size-3" />
+                          {s.time}
+                        </div>
+                      </div>
+                    </div>
+                    {s.featured && (
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                        <Zap className="size-2.5" />
+                        AI feedback
+                      </span>
+                    )}
                   </div>
-                  <div className={`rounded-lg px-4 py-2.5 bg-white/40 dark:bg-zinc-900/20`}>
-                    <p className={`text-xs font-semibold ${s.color}`}>{s.highlight}</p>
+
+                  {/* Question types */}
+                  <ul className="mb-5 space-y-2">
+                    {s.questionTypes.map((qt) => (
+                      <li
+                        key={qt}
+                        className="flex items-start gap-2.5 text-sm text-muted-foreground leading-snug"
+                      >
+                        <span
+                          className={cn('mt-2 size-1 shrink-0 rounded-full', s.accent)}
+                        />
+                        {qt}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Tip + highlight */}
+                  <div className="space-y-2.5 border-t border-border/50 pt-5">
+                    <div className="rounded-xl border border-border/50 bg-background/60 px-4 py-3.5 backdrop-blur-sm">
+                      <div className="mb-1.5 flex items-center gap-1.5">
+                        <Lightbulb className="size-3.5 text-muted-foreground" />
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                          Exam tip
+                        </p>
+                      </div>
+                      <p className="text-sm leading-relaxed text-foreground/80">{s.tip}</p>
+                    </div>
+                    <p className={cn('px-1 text-xs font-semibold leading-snug', s.color)}>
+                      {s.highlight}
+                    </p>
                   </div>
                 </div>
               </div>
