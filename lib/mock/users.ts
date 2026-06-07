@@ -13,7 +13,6 @@ export const mockUser: User = {
     writing: 6.0,
     speaking: 6.5,
   },
-  studyStreak: 12,
   totalStudyHours: 87,
   joinedAt: '2025-09-01',
   plan: 'pro',

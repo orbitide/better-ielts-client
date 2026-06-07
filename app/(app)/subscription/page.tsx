@@ -90,7 +90,7 @@ export default async function SubscriptionPage() {
       </Card>
 
       {user.plan !== 'free' && (
-        <Card>
+        <Card id="billing">
           <CardHeader>
             <CardTitle>Billing history</CardTitle>
             <CardDescription>Your past invoices and payments</CardDescription>

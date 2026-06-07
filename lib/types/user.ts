@@ -13,7 +13,6 @@ export type User = {
   avatarUrl: string
   targetBand: number
   currentBand: BandScore
-  studyStreak: number
   totalStudyHours: number
   joinedAt: string
   plan: 'free' | 'pro' | 'elite'

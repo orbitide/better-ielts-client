@@ -5,8 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { formatBand, formatDate } from '@/lib/utils/format'
-import { planDetails } from '@/lib/mock/subscriptions'
-import { Flame, Clock, Target, Mail, Calendar } from 'lucide-react'
+import { planDetails, billingHistory } from '@/lib/mock/subscriptions'
+import { Clock, Target, Mail, Calendar, Crown, ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata = { title: 'My Account' }
@@ -14,6 +14,11 @@ export const metadata = { title: 'My Account' }
 export default async function AccountPage() {
   const user = await getCurrentUser()
   const plan = planDetails[user.plan]
+  const lastBilling = billingHistory[0]
+  const nextRenewal = lastBilling
+    ? new Date(new Date(lastBilling.date).setMonth(new Date(lastBilling.date).getMonth() + 1))
+        .toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+    : null
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-3xl mx-auto min-h-full">
@@ -44,7 +49,7 @@ export default async function AccountPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2 text-muted-foreground">
@@ -52,15 +57,6 @@ export default async function AccountPage() {
               <span className="text-sm font-medium">Target Band</span>
             </div>
             <BandBadge score={user.targetBand} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2 text-muted-foreground">
-              <Flame className="size-4" />
-              <span className="text-sm font-medium">Study Streak</span>
-            </div>
-            <p className="text-2xl font-bold">{user.studyStreak} days</p>
           </CardContent>
         </Card>
         <Card>
@@ -91,15 +87,36 @@ export default async function AccountPage() {
       </Card>
 
       <Card>
-        <CardHeader className="flex-row items-center justify-between">
-          <CardTitle>Subscription</CardTitle>
-          <Link href="/subscription" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-            Manage
+        <CardHeader className="flex-row items-center justify-between pb-4">
+          <div>
+            <CardTitle>Subscription</CardTitle>
+            <p className="text-sm text-muted-foreground mt-0.5">Your current plan and billing</p>
+          </div>
+          <Link href="/subscription" className={buttonVariants({ variant: 'default', size: 'sm' })}>
+            Manage <ArrowUpRight className="size-3.5 ml-1" />
           </Link>
         </CardHeader>
-        <CardContent>
-          <p className="font-medium">{plan.name} plan</p>
-          <p className="text-sm text-muted-foreground">{plan.price} {plan.period}</p>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-full bg-primary/10">
+                <Crown className="size-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-semibold">{plan.name} Plan</p>
+                <p className="text-sm text-muted-foreground">{plan.price} {plan.period}</p>
+              </div>
+            </div>
+            <Badge className="bg-green-500/10 text-green-600 border border-green-200 hover:bg-green-500/10">Active</Badge>
+          </div>
+          <div className="flex items-center justify-between border-t pt-3">
+            {nextRenewal && (
+              <p className="text-xs text-muted-foreground">Next renewal: {nextRenewal}</p>
+            )}
+            <Link href="/subscription#billing" className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground ml-auto">
+              View billing history
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>

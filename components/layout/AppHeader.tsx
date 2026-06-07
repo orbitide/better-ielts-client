@@ -1,4 +1,4 @@
-import { Bell, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from './ThemeToggle'
 import { MobileNav } from './MobileNav'
@@ -25,11 +25,7 @@ export function AppHeader() {
 
       <div className="ml-auto flex items-center gap-2">
         <ThemeToggle />
-        <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
-          <Bell className="h-4 w-4" />
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
-        </Button>
-        <ProfileMenu />
+<ProfileMenu />
       </div>
     </header>
   )
