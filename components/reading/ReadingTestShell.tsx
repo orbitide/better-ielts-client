@@ -15,6 +15,7 @@ import { ResizableSplitPane } from '@/components/shared/ResizableSplitPane'
 import { ExamIntroScreen } from '@/components/exam/ExamIntroScreen'
 import { ExamToolbar, ExamSectionTab } from '@/components/exam/ExamToolbar'
 import { ExamFooter } from '@/components/exam/ExamFooter'
+import { cn } from '@/lib/utils'
 import { examExitHrefs } from '@/lib/utils/exam-routes'
 import type { ReadingTest } from '@/lib/types/reading'
 import { ChevronLeft, ChevronRight, Clock, CheckCircle } from 'lucide-react'
@@ -29,6 +30,11 @@ export function ReadingTestShell({ test }: ReadingTestShellProps) {
   const [started, setStarted] = useState(false)
   const [sectionIndex, setSectionIndex] = useState(0)
   const [submitted, setSubmitted] = useState(false)
+  const [fontSize, setFontSize] = useState(1)
+
+  const fontSizes = ['text-xs', 'text-sm', 'text-base', 'text-lg'] as const
+  const decreaseFont = () => setFontSize((f) => Math.max(0, f - 1))
+  const increaseFont = () => setFontSize((f) => Math.min(fontSizes.length - 1, f + 1))
 
   const currentSection = test.sections[sectionIndex]
   const allQuestions = test.sections.flatMap((s) => s.questions)
@@ -103,16 +109,34 @@ export function ReadingTestShell({ test }: ReadingTestShellProps) {
         maxLeftPercent={78}
         className="bg-[#f8f8f8] dark:bg-[#181818]"
         left={
-          <ScrollArea className="h-full bg-white dark:bg-[#1e1e1e]">
-            <div className="p-6">
-              <h2 className="mb-4 text-base font-semibold text-foreground">{currentSection.passage.title}</h2>
-              <div className="max-w-none text-sm leading-[1.75] text-foreground/90">
-                {currentSection.passage.body.split('\n\n').map((para, i) => (
-                  <p key={i} className="mb-4">{para}</p>
-                ))}
-              </div>
+          <div className="flex h-full flex-col bg-white dark:bg-[#1e1e1e]">
+            <div className="flex shrink-0 items-center justify-end gap-1 border-b px-4 py-1.5">
+              <button
+                onClick={decreaseFont}
+                disabled={fontSize === 0}
+                className="rounded px-2 py-0.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                A−
+              </button>
+              <button
+                onClick={increaseFont}
+                disabled={fontSize === fontSizes.length - 1}
+                className="rounded px-2 py-0.5 text-base font-medium text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                A+
+              </button>
             </div>
-          </ScrollArea>
+            <ScrollArea className="h-full flex-1">
+              <div className="p-6">
+                <h2 className="mb-4 text-base font-semibold text-foreground">{currentSection.passage.title}</h2>
+                <div className={cn('max-w-none leading-[1.75] text-foreground/90', fontSizes[fontSize])}>
+                  {currentSection.passage.body.split('\n\n').map((para, i) => (
+                    <p key={i} className="mb-4">{para}</p>
+                  ))}
+                </div>
+              </div>
+            </ScrollArea>
+          </div>
         }
         right={
           <ScrollArea className="h-full bg-[#fafafa] dark:bg-[#161616]">

@@ -16,12 +16,18 @@ export function isPracticeSkill(value: string): value is PracticeSkill {
   return PRACTICE_SKILLS.includes(value as PracticeSkill)
 }
 
+export type PracticeTestSeries = {
+  id: string
+  label: string
+}
+
 export type PracticeTestItem = {
   id: string
   title: string
   href: string
   duration: string
   meta?: string
+  series?: PracticeTestSeries
 }
 
 export type PracticeSkillGroup = {
@@ -66,6 +72,37 @@ function findWeakestSkill(bands: BandScore, target: number): PracticeSkill {
   })
 }
 
+const practiceSeriesMap: Record<string, PracticeTestSeries> = {
+  'set-1': { id: 'set-1', label: 'Practice Set 1' },
+  'set-2': { id: 'set-2', label: 'Practice Set 2' },
+}
+
+const readingSeriesById: Record<string, string> = {
+  'test-1': 'set-1',
+  'test-2': 'set-1',
+  'test-3': 'set-2',
+}
+
+const listeningSeriesById: Record<string, string> = {
+  'test-1': 'set-1',
+}
+
+const writingSeriesById: Record<string, string> = {
+  'task1-1': 'set-1',
+  'task2-1': 'set-1',
+  'task1-2': 'set-1',
+  'task2-2': 'set-1',
+  'task1-3': 'set-2',
+  'task2-3': 'set-2',
+  'task2-4': 'set-2',
+}
+
+const speakingSeriesById: Record<string, string> = {
+  'session-1': 'set-1',
+  'session-2': 'set-1',
+  'session-3': 'set-2',
+}
+
 export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> => {
   await delay(100)
   const [reading, listening, writing, speaking] = await Promise.all([
@@ -90,6 +127,7 @@ export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> 
         href: `/reading/${t.id}`,
         duration: `${t.durationMinutes} min`,
         meta: `${t.sections.length} passages · ${t.sections.reduce((n, s) => n + s.questions.length, 0)} questions`,
+        series: practiceSeriesMap[readingSeriesById[t.id]],
       })),
     },
     {
@@ -106,6 +144,7 @@ export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> 
         href: `/listening/${t.id}`,
         duration: `${t.durationMinutes} min`,
         meta: `${t.sections.length} sections · 40 questions`,
+        series: practiceSeriesMap[listeningSeriesById[t.id]],
       })),
     },
     {
@@ -122,6 +161,7 @@ export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> 
         href: `/writing/${t.id}`,
         duration: `${t.timeMinutes} min`,
         meta: formatWritingMeta(t.type, t.timeMinutes),
+        series: practiceSeriesMap[writingSeriesById[t.id]],
       })),
     },
     {
@@ -138,6 +178,7 @@ export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> 
         href: `/speaking/${s.id}`,
         duration: '11–14 min',
         meta: `${s.parts.length} parts`,
+        series: practiceSeriesMap[speakingSeriesById[s.id]],
       })),
     },
   ]

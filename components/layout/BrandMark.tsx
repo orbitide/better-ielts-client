@@ -1,27 +1,26 @@
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
-const sizeClasses = {
-  sm: 'h-7 w-7 rounded-md text-sm',
-  md: 'h-8 w-8 rounded-lg text-base',
+const sizeMap = {
+  sm: 28,
+  md: 32,
 } as const
 
 export function BrandMark({
   size = 'md',
   className,
 }: {
-  size?: keyof typeof sizeClasses
+  size?: keyof typeof sizeMap
   className?: string
 }) {
+  const px = sizeMap[size]
   return (
-    <div
-      aria-hidden
-      className={cn(
-        'flex shrink-0 items-center justify-center bg-brand-gradient font-bold leading-none tracking-tight text-white select-none',
-        sizeClasses[size],
-        className,
-      )}
-    >
-      B
-    </div>
+    <Image
+      src="/logo.svg"
+      alt="better IELTS logo"
+      width={px}
+      height={px}
+      className={cn('shrink-0', className)}
+    />
   )
 }
