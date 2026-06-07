@@ -1,4 +1,4 @@
-export type CallPhase = 'setup' | 'matching' | 'connecting' | 'active' | 'ended'
+export type CallPhase = 'setup' | 'matching' | 'connecting' | 'active' | 'review' | 'ended'
 
 export type CallTopic = {
   id: string
@@ -16,4 +16,12 @@ export type CallPromptCard = {
 export type CallSummary = {
   durationSeconds: number
   topicsDiscussed: string[]
+}
+
+export type CallReview = {
+  overall: number
+  fluency: number | null
+  engagement: number | null
+  vocabulary: number | null
+  flags: string[]
 }
