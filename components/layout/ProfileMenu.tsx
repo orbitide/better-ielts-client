@@ -42,26 +42,26 @@ export function ProfileMenu() {
         <ChevronDown className="size-3.5 opacity-60" />
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-52">
+      <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="font-normal">
+          <DropdownMenuLabel className="px-3 py-3 font-normal">
             <p className="font-medium text-foreground truncate">{user.name}</p>
             <p className="text-xs text-muted-foreground truncate">{user.email}</p>
           </DropdownMenuLabel>
 
-          <DropdownMenuItem render={<Link href="/account" />}>
+          <DropdownMenuItem className="px-3 py-2 gap-3" render={<Link href="/account" />}>
             <User />
             My Account
           </DropdownMenuItem>
-          <DropdownMenuItem render={<Link href="/settings" />}>
+          <DropdownMenuItem className="px-3 py-2 gap-3" render={<Link href="/settings" />}>
             <Settings />
             Settings
           </DropdownMenuItem>
-          <DropdownMenuItem render={<Link href="/subscription" />}>
+          <DropdownMenuItem className="px-3 py-2 gap-3" render={<Link href="/subscription" />}>
             <CreditCard />
             Subscription
           </DropdownMenuItem>
-          <DropdownMenuItem render={<Link href="/support" />}>
+          <DropdownMenuItem className="px-3 py-2 gap-3" render={<Link href="/support" />}>
             <HelpCircle />
             Support
           </DropdownMenuItem>
@@ -69,7 +69,7 @@ export function ProfileMenu() {
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem variant="destructive" onClick={handleLogout}>
+        <DropdownMenuItem className="px-3 py-2 gap-3" variant="destructive" onClick={handleLogout}>
           <LogOut />
           Log out
         </DropdownMenuItem>
