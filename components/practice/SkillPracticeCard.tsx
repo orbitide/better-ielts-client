@@ -17,16 +17,13 @@ export function SkillPracticeCard({ group }: { group: PracticeSkillGroup }) {
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm transition-all duration-200',
-        'hover:shadow-md hover:border-border/80',
+        'rounded-2xl border border-border bg-card shadow-sm transition-shadow duration-200',
+        'hover:shadow-md',
       )}
     >
-      <div className={cn('pointer-events-none absolute inset-0 bg-gradient-to-br to-transparent opacity-70', group.accentSoft)} />
-      <div className={cn('absolute left-0 right-0 top-0 h-1', group.accent)} />
-
-      <div className="relative p-6">
+      <div className="p-6">
         <div className="mb-5 flex items-start gap-4">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl ring-1 ring-foreground/5 bg-muted/50">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted/60">
             <Icon className={cn('size-5', group.color)} />
           </div>
           <div className="min-w-0 flex-1">
@@ -49,3 +46,4 @@ export function SkillPracticeCard({ group }: { group: PracticeSkillGroup }) {
     </div>
   )
 }
+
