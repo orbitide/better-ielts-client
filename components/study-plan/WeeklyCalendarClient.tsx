@@ -15,9 +15,10 @@ const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 interface WeeklyCalendarClientProps {
   days: StudyPlanDay[]
+  onTaskComplete?: (taskId: string) => void
 }
 
-export function WeeklyCalendarClient({ days }: WeeklyCalendarClientProps) {
+export function WeeklyCalendarClient({ days, onTaskComplete }: WeeklyCalendarClientProps) {
   const today = new Date().toISOString().slice(0, 10)
   const todayIndex = days.findIndex((d) => d.date === today)
   const [selectedIndex, setSelectedIndex] = useState(todayIndex >= 0 ? todayIndex : 0)
@@ -90,7 +91,13 @@ export function WeeklyCalendarClient({ days }: WeeklyCalendarClientProps) {
                 {task.status === 'completed' ? (
                   <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
                 ) : (
-                  <Circle className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                  <button
+                    onClick={() => onTaskComplete?.(task.id)}
+                    title="Mark as complete"
+                    className="shrink-0 mt-0.5 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <Circle className="h-5 w-5 text-muted-foreground hover:text-emerald-500 transition-colors" />
+                  </button>
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium">{task.title}</p>

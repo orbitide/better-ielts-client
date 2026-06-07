@@ -9,6 +9,8 @@ const navLinks = [
   { href: '/courses', label: 'Courses' },
   { href: '/practice', label: 'Practice' },
   { href: '/mock-tests', label: 'Mock Tests' },
+  { href: '/exam-guide', label: 'Exam Guide' },
+  { href: '/tools/band-calculator', label: 'Calculator' },
   { href: '/vocabulary', label: 'Vocabulary' },
   { href: '/blog', label: 'Blog' },
   { href: '/pricing', label: 'Pricing' },

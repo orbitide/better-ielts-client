@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BookOpen, LayoutDashboard, BookMarked, Headphones, PenLine, Mic, ClipboardList, Brain, Users, CalendarDays, BarChart3 } from 'lucide-react'
+import { BookOpen, LayoutDashboard, BookMarked, Headphones, PenLine, Mic, ClipboardList, Brain, Users, CalendarDays, BarChart3, Calculator, GraduationCap } from 'lucide-react'
 import { BrandMark } from './BrandMark'
 import { BrandName } from './BrandName'
 import { SidebarNavLink } from './SidebarNavLink'
@@ -17,6 +17,9 @@ const navItems = [
   { href: '/courses', label: 'Courses', icon: BookOpen },
   { href: '/vocabulary/environment', label: 'Vocabulary', icon: Brain },
   { href: '/mock-test/full-1', label: 'Mock Tests', icon: ClipboardList },
+  { type: 'divider', label: 'Tools' },
+  { href: '/tools/band-calculator', label: 'Band Calculator', icon: Calculator },
+  { href: '/exam-guide', label: 'Exam Guide', icon: GraduationCap },
   { type: 'divider', label: 'Community' },
   { href: '/community', label: 'Community', icon: Users },
 ]
