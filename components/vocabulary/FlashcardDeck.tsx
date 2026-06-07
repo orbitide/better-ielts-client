@@ -16,10 +16,15 @@ export function FlashcardDeck({ topic }: { topic: VocabTopic }) {
   const [cardIdx, setCardIdx] = useState(0)
   const [flipped, setFlipped] = useState(false)
   const [learned, setLearned] = useState<Set<string>>(new Set())
+  const [difficultyFilter, setDifficultyFilter] = useState<'all' | 'easy' | 'medium' | 'hard'>('all')
 
-  const cards = topic.words
+  const filteredWords = difficultyFilter === 'all'
+    ? topic.words
+    : topic.words.filter((w) => w.difficulty === difficultyFilter)
+
+  const cards = filteredWords
   const current = cards[cardIdx]
-  const progress = (learned.size / cards.length) * 100
+  const progress = cards.length > 0 ? (learned.size / cards.length) * 100 : 0
 
   const goNext = () => {
     setFlipped(false)
@@ -61,6 +66,22 @@ export function FlashcardDeck({ topic }: { topic: VocabTopic }) {
           <Progress value={progress} className="flex-1 h-2" />
           <span className="text-xs text-muted-foreground shrink-0">{learned.size}/{cards.length} learned</span>
         </div>
+        <div className="flex items-center gap-2 mt-3">
+          {(['all', 'easy', 'medium', 'hard'] as const).map((d) => (
+            <button
+              key={d}
+              onClick={() => { setDifficultyFilter(d); setCardIdx(0); setFlipped(false) }}
+              className={cn(
+                'rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors',
+                difficultyFilter === d
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border/60 bg-card text-muted-foreground hover:border-border hover:text-foreground',
+              )}
+            >
+              {d === 'all' ? 'All' : d}
+            </button>
+          ))}
+        </div>
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="flex flex-col flex-1 overflow-hidden">
@@ -72,7 +93,10 @@ export function FlashcardDeck({ topic }: { topic: VocabTopic }) {
 
         <TabsContent value="flashcards" className="flex-1 flex flex-col overflow-hidden mt-0 p-6">
           <div className="flex-1 flex flex-col items-center justify-center">
-            {/* Card */}
+            {cards.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No words match this filter.</p>
+            ) : (
+            <>{/* Card */}
             <div
               className="w-full max-w-lg cursor-pointer select-none"
               style={{ perspective: '1200px' }}
@@ -155,17 +179,21 @@ export function FlashcardDeck({ topic }: { topic: VocabTopic }) {
                 Reset
               </Button>
             </div>
+            </>
+            )}
           </div>
         </TabsContent>
 
         <TabsContent value="quiz" className="flex-1 overflow-hidden mt-0">
-          <VocabQuiz words={topic.words} />
+          <VocabQuiz words={filteredWords} />
         </TabsContent>
 
         <TabsContent value="wordlist" className="flex-1 overflow-hidden mt-0">
           <ScrollArea className="h-full">
             <div className="p-6 grid gap-3">
-              {topic.words.map((word) => (
+              {filteredWords.length === 0 ? (
+                <p className="text-center text-sm text-muted-foreground py-6">No words match this filter.</p>
+              ) : filteredWords.map((word) => (
                 <WordListItem key={word.id} word={word} isLearned={learned.has(word.id)} onToggle={() => setLearned((prev) => {
                   const next = new Set(prev)
                   if (next.has(word.id)) next.delete(word.id)

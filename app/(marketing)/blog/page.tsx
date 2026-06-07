@@ -30,7 +30,7 @@ export default async function BlogPage() {
 
         {/* Featured post */}
         {featured && (
-          <Link href={`/blog`} className="group block rounded-2xl overflow-hidden border bg-card mb-8 hover:shadow-lg transition-shadow">
+          <Link href={`/blog/${featured.slug}`} className="group block rounded-2xl overflow-hidden border bg-card mb-8 hover:shadow-lg transition-shadow">
             <div className="grid grid-cols-1 md:grid-cols-2">
               <div className="aspect-video md:aspect-auto overflow-hidden bg-muted">
                 <img
@@ -63,7 +63,7 @@ export default async function BlogPage() {
         {/* Rest of posts */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {rest.map((post) => (
-            <Link key={post.id} href={`/blog`} className="group rounded-xl border bg-card overflow-hidden hover:shadow-md transition-shadow">
+            <Link key={post.id} href={`/blog/${post.slug}`} className="group rounded-xl border bg-card overflow-hidden hover:shadow-md transition-shadow">
               <div className="aspect-video overflow-hidden bg-muted">
                 <img
                   src={post.coverImageUrl}
