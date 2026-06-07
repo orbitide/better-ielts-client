@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { LayoutDashboard, BookMarked, Headphones, PenLine, Mic, ClipboardList, Brain, Users, CalendarDays, BarChart3, Calculator, GraduationCap } from 'lucide-react'
+import { LayoutDashboard, BookMarked, Headphones, PenLine, Mic, ClipboardList, Brain, Users, CalendarDays, BarChart3, Calculator, GraduationCap, PhoneCall } from 'lucide-react'
 import { BrandMark } from './BrandMark'
 import { BrandName } from './BrandName'
 import { SidebarNavLink } from './SidebarNavLink'
@@ -13,6 +13,7 @@ const navItems = [
   { href: '/practice/listening', label: 'Listening', icon: Headphones, matchPaths: ['/practice/listening', '/listening'] },
   { href: '/practice/writing', label: 'Writing', icon: PenLine, matchPaths: ['/practice/writing', '/writing'] },
   { href: '/practice/speaking', label: 'Speaking', icon: Mic, matchPaths: ['/practice/speaking', '/speaking'] },
+  { href: '/call', label: 'Speaking Call', icon: PhoneCall, matchPaths: ['/call'] },
   { type: 'divider', label: 'Learn' },
   { href: '/vocabulary/environment', label: 'Vocabulary', icon: Brain },
   { href: '/mock-test/full-1', label: 'Mock Tests', icon: ClipboardList },

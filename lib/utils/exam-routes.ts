@@ -1,4 +1,4 @@
-const EXAM_ROUTE_PREFIXES = ['/reading/', '/listening/', '/writing/', '/speaking/', '/mock-test/'] as const
+const EXAM_ROUTE_PREFIXES = ['/reading/', '/listening/', '/writing/', '/speaking/', '/mock-test/', '/call'] as const
 
 export function isExamRoute(pathname: string) {
   return EXAM_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix))
@@ -10,4 +10,5 @@ export const examExitHrefs = {
   writing: '/practice/writing',
   speaking: '/practice/speaking',
   mockTest: '/mock-tests',
+  call: '/practice/speaking',
 } as const
