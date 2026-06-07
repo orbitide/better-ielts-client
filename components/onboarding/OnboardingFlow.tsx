@@ -136,13 +136,14 @@ function OptionCard({
 export function OnboardingFlow() {
   const router = useRouter()
   const { completed, data, setField, complete } = useOnboardingStore()
+  const onboardingHydrated = useOnboardingStore((s) => s._hasHydrated)
   const [step, setStep] = useState(0)
 
   useEffect(() => {
-    if (completed) router.replace('/dashboard')
-  }, [completed, router])
+    if (onboardingHydrated && completed) router.replace('/dashboard')
+  }, [onboardingHydrated, completed, router])
 
-  if (completed) return null
+  if (!onboardingHydrated || completed) return null
 
   // Progress bar: steps 1-8 are survey steps
   const progressPct = step >= 1 ? Math.min((step / TOTAL_STEPS) * 100, 100) : 0

@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { getPracticeCatalog, getPracticeRecommendation } from '@/lib/data/practice'
 import { RecommendedPracticeCard } from '@/components/practice/RecommendedPracticeCard'
 import { SkillPracticeCard } from '@/components/practice/SkillPracticeCard'
-import { PracticeGreeting } from '@/components/practice/PracticeGreeting'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { cn } from '@/lib/utils'
 import { ClipboardList } from 'lucide-react'
@@ -19,8 +18,7 @@ export default async function PracticePage() {
     <div className="py-12">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="mb-10">
-          <PracticeGreeting />
-          <h1 className="text-3xl font-bold tracking-tight mb-3 mt-2">Practice Tests</h1>
+          <h1 className="text-3xl font-bold tracking-tight mb-3">Practice Tests</h1>
           <p className="text-muted-foreground text-lg max-w-2xl leading-relaxed">
             Targeted skill practice for every section of the IELTS exam. Start with your recommended test, or browse by skill.
           </p>

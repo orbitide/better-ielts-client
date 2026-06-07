@@ -20,11 +20,15 @@ export function LoginForm() {
 
   const loginWithEmail = useAuthStore((s) => s.loginWithEmail)
   const loginWithGoogle = useAuthStore((s) => s.loginWithGoogle)
+  const authHydrated = useAuthStore((s) => s._hasHydrated)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
   const [email, setEmail] = useState<string>(DUMMY_CREDENTIALS.email)
   const [password, setPassword] = useState<string>(DUMMY_CREDENTIALS.password)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  if (!authHydrated || isAuthenticated) return null
 
   function handleGoogleLogin() {
     loginWithGoogle()

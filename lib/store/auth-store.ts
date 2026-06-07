@@ -9,10 +9,12 @@ import { DUMMY_CREDENTIALS } from '@/lib/auth/dummy-credentials'
 type AuthState = {
   user: User | null
   isAuthenticated: boolean
+  _hasHydrated: boolean
   loginWithEmail: (email: string, password: string) => boolean
   loginWithGoogle: () => void
   register: (name: string, email: string, password: string) => void
   logout: () => void
+  setHasHydrated: (has: boolean) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -20,6 +22,7 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       isAuthenticated: false,
+      _hasHydrated: false,
       loginWithEmail: (email, password) => {
         if (
           email === DUMMY_CREDENTIALS.email &&
@@ -38,6 +41,7 @@ export const useAuthStore = create<AuthState>()(
         })
       },
       logout: () => set({ user: null, isAuthenticated: false }),
+      setHasHydrated: (has) => set({ _hasHydrated: has }),
     }),
     {
       name: 'auth-session',
@@ -45,6 +49,9 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true)
+      },
     }
   )
 )

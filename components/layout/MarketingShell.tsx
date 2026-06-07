@@ -9,9 +9,7 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
   const hydrated = useAuthHydration()
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
-  if (!hydrated) {
-    return <MarketingGuestShell>{children}</MarketingGuestShell>
-  }
+  if (!hydrated) return null
 
   if (isAuthenticated) {
     return <AppShell>{children}</AppShell>

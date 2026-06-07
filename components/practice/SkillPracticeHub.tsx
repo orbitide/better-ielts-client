@@ -3,8 +3,6 @@ import { ChevronRight, BookMarked, Headphones, PenLine, Mic } from 'lucide-react
 import type { PracticeRecommendation, PracticeSkillGroup } from '@/lib/data/practice'
 import { RecommendedPracticeCard } from './RecommendedPracticeCard'
 import { PracticeTestList } from './PracticeTestList'
-import { PracticeGreeting } from './PracticeGreeting'
-
 const skillIcons = {
   reading: BookMarked,
   listening: Headphones,
@@ -33,10 +31,8 @@ export function SkillPracticeHub({
           <span className="text-foreground font-medium">{group.label}</span>
         </nav>
 
-        <PracticeGreeting />
-
         {/* Header */}
-        <div className="mb-8 mt-2 flex items-start gap-4">
+        <div className="mb-8 flex items-start gap-4">
           <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-muted/60 ring-1 ring-foreground/5">
             <Icon className={group.color} />
           </div>
