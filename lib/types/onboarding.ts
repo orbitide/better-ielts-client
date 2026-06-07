@@ -6,5 +6,5 @@ export type OnboardingData = {
   testDate: '1-month' | '1-3-months' | '3-6-months' | '1-year' | 'no-date'
   purpose: 'study-abroad' | 'work-abroad' | 'immigration' | 'personal'
   country: string
-  focusSkills: Array<'listening' | 'reading' | 'writing' | 'speaking'>
+  focusSkills: Array<'listening' | 'reading' | 'writing' | 'speaking' | 'overall'>
 }

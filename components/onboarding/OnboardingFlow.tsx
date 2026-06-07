@@ -8,6 +8,7 @@ import {
   BookOpenText,
   PenLine,
   Mic,
+  LayoutGrid,
   CheckCircle2,
   ArrowLeft,
   ArrowRight,
@@ -88,6 +89,7 @@ const SKILLS = [
   { id: 'reading' as const, label: 'Reading', Icon: BookOpenText },
   { id: 'writing' as const, label: 'Writing', Icon: PenLine },
   { id: 'speaking' as const, label: 'Speaking', Icon: Mic },
+  { id: 'overall' as const, label: 'Overall / Mix', Icon: LayoutGrid },
 ]
 
 const TOTAL_STEPS = 8
