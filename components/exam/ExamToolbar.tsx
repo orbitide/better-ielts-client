@@ -8,6 +8,7 @@ type ExamToolbarProps = {
   module: string
   exitHref: string
   exitLabel?: string
+  onExit?: () => void
   center?: React.ReactNode
   trailing?: React.ReactNode
   className?: string
@@ -17,6 +18,7 @@ export function ExamToolbar({
   module,
   exitHref,
   exitLabel = 'Exit test',
+  onExit,
   center,
   trailing,
   className,
@@ -39,13 +41,23 @@ export function ExamToolbar({
 
       <div className="ml-auto flex items-center gap-3">
         {trailing}
-        <Link
-          href={exitHref}
-          className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-        >
-          <X className="size-3.5" />
-          <span className="hidden sm:inline">{exitLabel}</span>
-        </Link>
+        {onExit ? (
+          <button
+            onClick={onExit}
+            className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            <X className="size-3.5" />
+            <span className="hidden sm:inline">{exitLabel}</span>
+          </button>
+        ) : (
+          <Link
+            href={exitHref}
+            className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            <X className="size-3.5" />
+            <span className="hidden sm:inline">{exitLabel}</span>
+          </Link>
+        )}
       </div>
     </header>
   )

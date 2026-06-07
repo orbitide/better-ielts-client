@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -21,13 +22,14 @@ import Link from 'next/link'
 import { RotateCcw } from 'lucide-react'
 
 export function ListeningTestShell({ test }: { test: ListeningTest }) {
-  const { startTest, answers, setAnswer, resetTest } = useTestStore()
+  const { startTest, submitTest, answers, setAnswer, resetTest, activeTestId, isSubmitted, _hasHydrated } = useTestStore()
   const timeRemaining = useTestTimer()
-  const [started, setStarted] = useState(false)
+  const router = useRouter()
+  const started = activeTestId === test.id
   const [sectionIdx, setSectionIdx] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [showTranscript, setShowTranscript] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+  const submitted = isSubmitted
   const [currentTime, setCurrentTime] = useState(0)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const currentSection = test.sections[sectionIdx]
@@ -36,7 +38,6 @@ export function ListeningTestShell({ test }: { test: ListeningTest }) {
 
   const handleStart = () => {
     startTest(test.id, test.durationMinutes * 60)
-    setStarted(true)
   }
 
   const togglePlay = () => {
@@ -54,10 +55,6 @@ export function ListeningTestShell({ test }: { test: ListeningTest }) {
     setShowTranscript(false)
   }, [sectionIdx])
 
-  useEffect(() => {
-    return () => resetTest()
-  }, [resetTest])
-
   function getScore() {
     const correct = allQuestions.filter((q) => {
       const a = answers[q.id]?.trim().toLowerCase()
@@ -73,6 +70,8 @@ export function ListeningTestShell({ test }: { test: ListeningTest }) {
     if (pct >= 0.40) return { score: correct, band: 6.0 }
     return { score: correct, band: 5.5 }
   }
+
+  if (!_hasHydrated) return null
 
   if (!started) {
     return (
@@ -143,6 +142,7 @@ export function ListeningTestShell({ test }: { test: ListeningTest }) {
       <ExamToolbar
         module="Listening"
         exitHref={examExitHrefs.listening}
+        onExit={() => { resetTest(); router.push(examExitHrefs.listening) }}
         center={
           <>
             {test.sections.map((s, i) => (
@@ -249,7 +249,7 @@ export function ListeningTestShell({ test }: { test: ListeningTest }) {
         ) : (
           <Button
             size="sm"
-            onClick={() => setSubmitted(true)}
+            onClick={() => submitTest()}
             className="gap-2 rounded-md bg-[#2b2f36] text-white hover:bg-[#3a3f48]"
           >
             <CheckCircle className="size-4" />

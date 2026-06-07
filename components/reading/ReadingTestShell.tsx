@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useTestStore } from '@/lib/store/test-store'
 import { useTestTimer } from '@/lib/hooks/use-timer'
 import { Button } from '@/components/ui/button'
@@ -25,11 +26,12 @@ interface ReadingTestShellProps {
 }
 
 export function ReadingTestShell({ test }: ReadingTestShellProps) {
-  const { startTest, answers, resetTest } = useTestStore()
+  const { startTest, submitTest, answers, resetTest, activeTestId, isSubmitted, _hasHydrated } = useTestStore()
   const timeRemaining = useTestTimer()
-  const [started, setStarted] = useState(false)
+  const router = useRouter()
+  const started = activeTestId === test.id
   const [sectionIndex, setSectionIndex] = useState(0)
-  const [submitted, setSubmitted] = useState(false)
+  const submitted = isSubmitted
   const [fontSize, setFontSize] = useState(1)
 
   const fontSizes = ['text-xs', 'text-sm', 'text-base', 'text-lg'] as const
@@ -41,12 +43,9 @@ export function ReadingTestShell({ test }: ReadingTestShellProps) {
 
   const handleStart = () => {
     startTest(test.id, test.durationMinutes * 60)
-    setStarted(true)
   }
 
-  useEffect(() => {
-    return () => resetTest()
-  }, [resetTest])
+  if (!_hasHydrated) return null
 
   if (!started) {
     return (
@@ -76,6 +75,7 @@ export function ReadingTestShell({ test }: ReadingTestShellProps) {
       <ExamToolbar
         module="Reading"
         exitHref={examExitHrefs.reading}
+        onExit={() => { resetTest(); router.push(examExitHrefs.reading) }}
         center={
           <>
             {test.sections.map((s, i) => (
@@ -179,7 +179,7 @@ export function ReadingTestShell({ test }: ReadingTestShellProps) {
         ) : (
           <Button
             size="sm"
-            onClick={() => setSubmitted(true)}
+            onClick={() => submitTest()}
             className="gap-2 rounded-md bg-[#2b2f36] text-white hover:bg-[#3a3f48]"
           >
             <CheckCircle className="size-4" />
