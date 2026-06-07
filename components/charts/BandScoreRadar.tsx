@@ -1,6 +1,6 @@
 'use client'
 
-import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, Tooltip } from 'recharts'
+import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, Tooltip } from 'recharts'
 import type { BandScore } from '@/lib/types/user'
 import { formatBand } from '@/lib/utils/format'
 
@@ -26,6 +26,7 @@ export function BandScoreRadar({ current, target }: BandScoreRadarProps) {
             dataKey="skill"
             tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
           />
+          <PolarRadiusAxis domain={[0, 9]} tick={false} axisLine={false} />
           <Radar
             name="Band Score"
             dataKey="score"
