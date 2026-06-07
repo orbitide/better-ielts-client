@@ -4,7 +4,6 @@ import { BrandName } from './BrandName'
 
 const footerLinks = {
   Product: [
-    { label: 'Courses', href: '/courses' },
     { label: 'Practice Tests', href: '/practice' },
     { label: 'Mock Tests', href: '/mock-tests' },
     { label: 'Vocabulary', href: '/vocabulary' },

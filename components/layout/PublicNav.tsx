@@ -6,7 +6,6 @@ import { ThemeToggle } from './ThemeToggle'
 import { PublicNavActions } from './PublicNavActions'
 
 const navLinks = [
-  { href: '/courses', label: 'Courses' },
   { href: '/practice', label: 'Practice' },
   { href: '/mock-tests', label: 'Mock Tests' },
   { href: '/exam-guide', label: 'Exam Guide' },

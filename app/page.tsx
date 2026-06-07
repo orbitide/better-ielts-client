@@ -3,7 +3,6 @@ import { StatsSection } from '@/components/landing/StatsSection'
 import { HowItWorksSection } from '@/components/landing/HowItWorksSection'
 import { FeaturesSection } from '@/components/landing/FeaturesSection'
 import { BandScaleSection } from '@/components/landing/BandScaleSection'
-import { CoursesPreviewSection } from '@/components/landing/CoursesPreviewSection'
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection'
 import { CtaSection } from '@/components/landing/CtaSection'
 import { PublicNav } from '@/components/layout/PublicNav'
@@ -19,7 +18,6 @@ export default function LandingPage() {
         <HowItWorksSection />
         <FeaturesSection />
         <BandScaleSection />
-        <CoursesPreviewSection />
         <TestimonialsSection />
         <CtaSection />
       </main>

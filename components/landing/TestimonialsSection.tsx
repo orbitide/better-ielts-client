@@ -70,9 +70,9 @@ export function TestimonialsSection() {
           </p>
         </div>
 
-        <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {testimonials.map((t) => (
-            <div key={t.name} className="break-inside-avoid rounded-xl border bg-card p-6 shadow-sm">
+            <div key={t.name} className="group rounded-xl border bg-card p-6 shadow-sm flex flex-col transition-shadow hover:shadow-md">
               {/* Stars */}
               <div className="flex mb-3">
                 {[1, 2, 3, 4, 5].map((s) => (
@@ -81,12 +81,12 @@ export function TestimonialsSection() {
               </div>
 
               {/* Quote */}
-              <blockquote className="text-sm text-muted-foreground leading-relaxed mb-4">
+              <blockquote className="text-sm text-muted-foreground leading-relaxed mb-4 overflow-hidden max-h-[5rem] group-hover:max-h-[20rem] transition-[max-height] duration-300 ease-in-out">
                 &ldquo;{t.quote}&rdquo;
               </blockquote>
 
               {/* Author */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 mt-auto">
                 <img
                   src={t.avatar}
                   alt={t.name}

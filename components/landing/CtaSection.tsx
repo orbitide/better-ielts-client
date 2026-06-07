@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/button-variants'
-import { ArrowRight, Calendar, Clock } from 'lucide-react'
+import { ArrowRight, Calendar, Clock, Plane } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const urgencyPoints = [
@@ -17,6 +17,9 @@ export function CtaSection() {
           <div className="absolute top-0 right-0 h-72 w-72 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/4" />
           <div className="absolute bottom-0 left-0 h-56 w-56 rounded-full bg-white/5 translate-y-1/2 -translate-x-1/4" />
           <div className="absolute top-1/2 left-1/2 h-96 w-96 rounded-full bg-white/[0.02] -translate-x-1/2 -translate-y-1/2" />
+
+          {/* Airplane decoration */}
+          <Plane className="absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 h-96 w-96 text-white/5 -rotate-12" />
 
           <div className="relative grid grid-cols-1 lg:grid-cols-5 gap-10 items-center max-w-5xl mx-auto">
             {/* Left — main copy */}

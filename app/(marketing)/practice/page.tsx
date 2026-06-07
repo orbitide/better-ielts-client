@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { getPracticeCatalog, getPracticeRecommendation } from '@/lib/data/practice'
-import { RecommendedPracticeCard } from '@/components/practice/RecommendedPracticeCard'
+import { RecommendedPracticeSection } from '@/components/practice/RecommendedPracticeSection'
 import { SkillPracticeCard } from '@/components/practice/SkillPracticeCard'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { cn } from '@/lib/utils'
@@ -25,7 +25,7 @@ export default async function PracticePage() {
         </div>
 
         <div className="mb-10">
-          <RecommendedPracticeCard recommendation={recommendation} />
+          <RecommendedPracticeSection recommendation={recommendation} />
         </div>
 
         <div className="mb-6 flex items-center justify-between gap-4">
