@@ -47,7 +47,7 @@ export default async function SubscriptionPage() {
   const nextBilling = '2026-07-01'
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-3xl mx-auto min-h-full">
       <PageHeader
         title="Subscription"
         description="Manage your plan and view billing history."

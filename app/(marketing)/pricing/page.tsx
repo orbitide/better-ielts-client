@@ -79,7 +79,7 @@ const comparison = [
 
 export default function PricingPage() {
   return (
-    <div className="py-12">
+    <div className="py-12 min-h-[85vh]">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-16">

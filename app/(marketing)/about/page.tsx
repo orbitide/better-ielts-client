@@ -17,7 +17,7 @@ const values = [
 
 export default function AboutPage() {
   return (
-    <div className="py-12">
+    <div className="py-12 min-h-[85vh]">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Mission */}
         <div className="max-w-3xl mb-20">

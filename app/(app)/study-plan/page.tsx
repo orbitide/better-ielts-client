@@ -11,7 +11,7 @@ export default async function StudyPlanPage() {
   ])
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-5xl mx-auto min-h-full">
       <StudyPlanShell fallbackPlan={plan} user={user} />
     </div>
   )

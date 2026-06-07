@@ -6,7 +6,7 @@ export const metadata = { title: 'Settings' }
 
 export default function SettingsPage() {
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-2xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-2xl mx-auto min-h-full">
       <PageHeader
         title="Settings"
         description="Manage your preferences and notifications."

@@ -13,7 +13,7 @@ export default async function ExamGuidePublicPage() {
   const guide = await getExamGuide()
 
   return (
-    <div className="container mx-auto max-w-5xl px-4 py-12 space-y-10">
+    <div className="container mx-auto max-w-5xl px-4 py-12 space-y-10 min-h-[85vh]">
       <div className="space-y-3">
         <h1 className="text-3xl font-bold tracking-tight">IELTS Exam Guide</h1>
         <p className="text-muted-foreground max-w-2xl">

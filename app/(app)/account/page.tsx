@@ -16,7 +16,7 @@ export default async function AccountPage() {
   const plan = planDetails[user.plan]
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-3xl mx-auto min-h-full">
       <PageHeader
         title="My Account"
         description="Your profile and learning overview."

@@ -71,7 +71,7 @@ const STATS = [
 
 export default function CommunityPage() {
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-6 max-w-5xl mx-auto min-h-full">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Community</h1>
         <p className="text-muted-foreground">

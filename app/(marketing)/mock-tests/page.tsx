@@ -24,7 +24,7 @@ export default async function MockTestsPage() {
   const tests = await getAllMockTests()
 
   return (
-    <div className="py-12">
+    <div className="py-12 min-h-[85vh]">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="mb-12">
           <h1 className="text-3xl font-bold tracking-tight mb-3">Mock Tests</h1>

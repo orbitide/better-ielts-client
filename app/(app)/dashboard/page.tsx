@@ -57,7 +57,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto min-h-full">
       {/* Header */}
       <PageHeader
         title={`Good morning, ${user.name.split(' ')[0]} 👋`}
