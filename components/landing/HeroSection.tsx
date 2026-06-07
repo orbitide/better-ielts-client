@@ -41,7 +41,7 @@ export function HeroSection() {
             </h1>
 
             <p className="text-lg text-muted-foreground leading-relaxed mb-6 max-w-xl">
-              Better IELTS gives you structured courses, real exam practice, and AI writing feedback for all four skills — Reading, Listening, Writing, and Speaking.
+              Better IELTS gives you real exam practice and AI writing feedback for all four skills — Reading, Listening, Writing, and Speaking.
             </p>
 
             {/* Use case list */}

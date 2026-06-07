@@ -1,21 +1,23 @@
 'use client'
 
 import { useEffect } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/store/auth-store'
+import { useOnboardingStore } from '@/lib/store/onboarding-store'
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const onboardingCompleted = useOnboardingStore((s) => s.completed)
   const router = useRouter()
-  const pathname = usePathname()
 
   useEffect(() => {
     if (!isAuthenticated) {
-      const redirect = encodeURIComponent(pathname)
-      router.replace(`/login?redirect=${redirect}`)
+      router.replace('/')
+    } else if (!onboardingCompleted) {
+      router.replace('/onboarding')
     }
-  }, [isAuthenticated, router, pathname])
+  }, [isAuthenticated, onboardingCompleted, router])
 
-  if (!isAuthenticated) return null
+  if (!isAuthenticated || !onboardingCompleted) return null
   return <>{children}</>
 }
