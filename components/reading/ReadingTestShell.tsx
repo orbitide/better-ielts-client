@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTestStore } from '@/lib/store/test-store'
+import { useProgressStore } from '@/lib/store/progress-store'
 import { useTestTimer } from '@/lib/hooks/use-timer'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -27,6 +28,7 @@ interface ReadingTestShellProps {
 
 export function ReadingTestShell({ test }: ReadingTestShellProps) {
   const { startTest, submitTest, answers, resetTest, activeTestId, isSubmitted, _hasHydrated } = useTestStore()
+  const { markCompleted } = useProgressStore()
   const timeRemaining = useTestTimer()
   const router = useRouter()
   const started = activeTestId === test.id
@@ -179,7 +181,7 @@ export function ReadingTestShell({ test }: ReadingTestShellProps) {
         ) : (
           <Button
             size="sm"
-            onClick={() => submitTest()}
+            onClick={() => { submitTest(); markCompleted(test.id) }}
             className="gap-2 rounded-md bg-[#2b2f36] text-white hover:bg-[#3a3f48]"
           >
             <CheckCircle className="size-4" />

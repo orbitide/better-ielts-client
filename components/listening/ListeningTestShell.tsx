@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { CountdownTimer } from '@/components/shared/CountdownTimer'
 import { BandBadge } from '@/components/shared/BandBadge'
 import { useTestStore } from '@/lib/store/test-store'
+import { useProgressStore } from '@/lib/store/progress-store'
 import { useTestTimer } from '@/lib/hooks/use-timer'
 import type { ListeningTest, ListeningQuestion } from '@/lib/types/listening'
 import { Play, Pause, ChevronRight, Clock, Volume2, Eye, EyeOff, CheckCircle } from 'lucide-react'
@@ -23,6 +24,7 @@ import { RotateCcw } from 'lucide-react'
 
 export function ListeningTestShell({ test }: { test: ListeningTest }) {
   const { startTest, submitTest, answers, setAnswer, resetTest, activeTestId, isSubmitted, _hasHydrated } = useTestStore()
+  const { markCompleted } = useProgressStore()
   const timeRemaining = useTestTimer()
   const router = useRouter()
   const started = activeTestId === test.id
@@ -249,7 +251,7 @@ export function ListeningTestShell({ test }: { test: ListeningTest }) {
         ) : (
           <Button
             size="sm"
-            onClick={() => submitTest()}
+            onClick={() => { submitTest(); markCompleted(test.id) }}
             className="gap-2 rounded-md bg-[#2b2f36] text-white hover:bg-[#3a3f48]"
           >
             <CheckCircle className="size-4" />

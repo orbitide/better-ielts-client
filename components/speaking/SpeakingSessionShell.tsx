@@ -12,6 +12,7 @@ import { ExamIntroScreen } from '@/components/exam/ExamIntroScreen'
 import { ExamToolbar, ExamSectionTab } from '@/components/exam/ExamToolbar'
 import { ExamResultsScreen } from '@/components/exam/ExamResultsScreen'
 import { examExitHrefs } from '@/lib/utils/exam-routes'
+import { useProgressStore } from '@/lib/store/progress-store'
 
 const PART_FEEDBACK = [
   { band: 6.5, strengths: ['Good fluency with some hesitation', 'Relevant vocabulary used'], improvements: ['Develop answers further', 'Use more idiomatic expressions'] },
@@ -20,6 +21,7 @@ const PART_FEEDBACK = [
 ]
 
 export function SpeakingSessionShell({ session }: { session: SpeakingSession }) {
+  const { markCompleted } = useProgressStore()
   const [started, setStarted] = useState(false)
   const [partIdx, setPartIdx] = useState(0)
   const [phase, setPhase] = useState<'intro' | 'prep' | 'recording' | 'done-part' | 'finished'>('intro')
@@ -293,6 +295,7 @@ export function SpeakingSessionShell({ session }: { session: SpeakingSession }) 
                       setRecordingTime(0)
                     } else {
                       setPhase('finished')
+                      markCompleted(session.id)
                     }
                   }}
                   className="gap-2 rounded-md bg-[#2b2f36] text-white hover:bg-[#3a3f48]"

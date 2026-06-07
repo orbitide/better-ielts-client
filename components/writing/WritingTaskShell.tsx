@@ -17,6 +17,7 @@ import { ExamToolbar } from '@/components/exam/ExamToolbar'
 import { ExamFooter } from '@/components/exam/ExamFooter'
 import { ExamResultsScreen } from '@/components/exam/ExamResultsScreen'
 import { examExitHrefs } from '@/lib/utils/exam-routes'
+import { useProgressStore } from '@/lib/store/progress-store'
 
 const MOCK_FEEDBACK = {
   overallBand: 6.5,
@@ -34,6 +35,7 @@ const MOCK_FEEDBACK = {
 }
 
 export function WritingTaskShell({ task }: { task: WritingTask }) {
+  const { markCompleted } = useProgressStore()
   const [started, setStarted] = useState(false)
   const [text, setText] = useState('')
   const [timeLeft, setTimeLeft] = useState(task.timeMinutes * 60)
@@ -247,7 +249,7 @@ export function WritingTaskShell({ task }: { task: WritingTask }) {
 
       <ExamFooter className="justify-end">
         <Button
-          onClick={() => setSubmitted(true)}
+          onClick={() => { setSubmitted(true); markCompleted(task.id) }}
           disabled={wordCount < Math.round(task.wordMinimum * 0.7)}
           className="gap-2 rounded-md bg-[#2b2f36] text-white hover:bg-[#3a3f48] disabled:opacity-50"
         >
