@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { BandBadge } from '@/components/shared/BandBadge'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { Flame, BookMarked, Headphones, PenLine, Mic, Clock, ArrowRight, TrendingUp, ClipboardList } from 'lucide-react'
+import { BookMarked, Headphones, PenLine, Mic, Clock, ArrowRight, TrendingUp, ClipboardList } from 'lucide-react'
 import Link from 'next/link'
 import { formatBand, skillColor, formatDate } from '@/lib/utils/format'
 import { cn } from '@/lib/utils'
@@ -30,6 +30,12 @@ export default async function DashboardPage() {
   const pendingTasks = todayPlan?.tasks.filter((t) => t.status === 'pending') ?? []
   const completedToday = todayPlan?.tasks.filter((t) => t.status === 'completed').length ?? 0
   const totalToday = todayPlan?.tasks.length ?? 0
+
+  const skills = ['listening', 'reading', 'writing', 'speaking'] as const
+  const weakestSkill = skills.reduce((a, b) =>
+    user.currentBand[a] <= user.currentBand[b] ? a : b
+  )
+  const weakestGap = user.targetBand - user.currentBand[weakestSkill]
 
   const skillLinks: Record<string, string> = {
     reading: '/reading/test-1',
@@ -60,7 +66,18 @@ export default async function DashboardPage() {
     <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto min-h-full">
       {/* Header */}
       <PageHeader
-        title={`Good morning, ${user.name.split(' ')[0]} 👋`}
+        title={(() => {
+          const hour = new Date().getHours()
+          const greeting =
+            hour >= 5 && hour < 12
+              ? 'Good morning'
+              : hour >= 12 && hour < 17
+              ? 'Good afternoon'
+              : hour >= 17 && hour < 21
+              ? 'Good evening'
+              : 'Good night'
+          return `${greeting}, ${user.name.split(' ')[0]} 👋`
+        })()}
         description="Here's your IELTS preparation summary for today."
       >
         <Link href="/mock-test/full-1" className={cn(buttonVariants(), 'gap-2')}>
@@ -80,13 +97,16 @@ export default async function DashboardPage() {
         </Card>
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground mb-1">Study Streak</p>
+            <p className="text-xs text-muted-foreground mb-1">Weakest Skill</p>
             <div className="flex items-center gap-1.5">
-              <Flame className="h-5 w-5 text-orange-500" />
-              <p className="text-3xl font-extrabold">{user.studyStreak}</p>
-              <span className="text-sm text-muted-foreground">days</span>
+              <div className={`flex h-6 w-6 items-center justify-center rounded-md ${skillColor(weakestSkill)}`}>
+                {(() => { const Icon = skillIcons[weakestSkill]; return <Icon className="h-3.5 w-3.5" /> })()}
+              </div>
+              <p className="text-3xl font-extrabold">{formatBand(user.currentBand[weakestSkill])}</p>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Keep it up!</p>
+            <p className="text-xs text-muted-foreground mt-1 capitalize">
+              {weakestSkill} · {weakestGap > 0 ? `+${formatBand(weakestGap)} to target` : 'At target!'}
+            </p>
           </CardContent>
         </Card>
         <Card>
