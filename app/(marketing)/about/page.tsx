@@ -1,6 +1,10 @@
 import { BookOpen, Target, Users, Award } from 'lucide-react'
 
-export const metadata = { title: 'About Us' }
+export const metadata = {
+  title: 'About Us',
+  description:
+    'Meet the team behind Better IELTS — IELTS examiners and language educators on a mission to make expert IELTS preparation accessible to everyone.',
+}
 
 const team = [
   { name: 'Dr Sarah Chen', role: 'Chief Academic Officer', bio: 'IELTS examiner for 12 years with a PhD in Applied Linguistics. Author of three IELTS preparation books.', avatar: 'https://api.dicebear.com/9.x/avataaars/svg?seed=Sarah' },

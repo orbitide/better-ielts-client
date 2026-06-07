@@ -19,7 +19,11 @@ export async function generateMetadata({ params }: PageProps) {
   const { skill } = await params
   if (!isPracticeSkill(skill)) return { title: 'Practice' }
   const group = await getSkillPracticeGroup(skill)
-  return { title: `${group?.label ?? skill} Practice` }
+  const label = group?.label ?? skill
+  return {
+    title: `${label} Practice`,
+    description: `Practise IELTS ${label} with authentic test-style questions and detailed answer explanations. Build your skills and improve your band score.`,
+  }
 }
 
 export default async function SkillPracticePage({ params }: PageProps) {

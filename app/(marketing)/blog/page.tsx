@@ -21,7 +21,13 @@ export async function generateMetadata({
   searchParams: Promise<{ category?: string }>
 }) {
   const { category } = await searchParams
-  return { title: category ? `Blog — ${category}` : 'Blog' }
+  const description = category
+    ? `Browse IELTS ${category} articles — tips, strategies, and guides from expert IELTS examiners.`
+    : 'Expert IELTS tips, strategies, and guides from active IELTS examiners. Improve your Reading, Writing, Listening, and Speaking band scores.'
+  return {
+    title: category ? `Blog — ${category}` : 'Blog',
+    description,
+  }
 }
 
 export default async function BlogPage({

@@ -5,7 +5,11 @@ import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Clock, ArrowRight, BookMarked, Headphones, PenLine, Mic } from 'lucide-react'
 
-export const metadata = { title: 'Mock Tests' }
+export const metadata = {
+  title: 'Mock Tests',
+  description:
+    'Take a full IELTS mock test under timed exam conditions. Includes all four skills: Listening (30 min), Reading (60 min), Writing (60 min), and Speaking (15 min).',
+}
 
 const difficultyBadge: Record<string, string> = {
   beginner: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',

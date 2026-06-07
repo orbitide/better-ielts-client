@@ -6,7 +6,11 @@ import { buttonVariants } from '@/components/ui/button-variants'
 import { cn } from '@/lib/utils'
 import { ClipboardList } from 'lucide-react'
 
-export const metadata = { title: 'Practice Tests' }
+export const metadata = {
+  title: 'Practice Tests',
+  description:
+    'Practise all four IELTS skills with authentic test-style questions. Reading, Listening, Writing, and Speaking practice tests at every difficulty level.',
+}
 
 export default async function PracticePage() {
   const [recommendation, catalog] = await Promise.all([

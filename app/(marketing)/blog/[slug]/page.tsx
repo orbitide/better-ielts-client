@@ -43,7 +43,24 @@ function renderMarkdown(content: string) {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const post = await getBlogPost(slug)
-  return { title: post?.title ?? 'Blog' }
+  return {
+    title: post?.title ?? 'Blog',
+    description: post?.excerpt,
+    openGraph: {
+      title: post?.title,
+      description: post?.excerpt,
+      type: 'article',
+      publishedTime: post?.publishedAt,
+      authors: post?.author.name ? [post.author.name] : undefined,
+      images: post?.coverImageUrl ? [{ url: post.coverImageUrl }] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post?.title,
+      description: post?.excerpt,
+      images: post?.coverImageUrl ? [post.coverImageUrl] : undefined,
+    },
+  }
 }
 
 export default async function BlogDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -108,6 +125,23 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
             </Badge>
           ))}
         </div>
+
+        {/* Structured data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'BlogPosting',
+              headline: post.title,
+              description: post.excerpt,
+              image: post.coverImageUrl,
+              author: { '@type': 'Person', name: post.author.name },
+              datePublished: post.publishedAt,
+              publisher: { '@type': 'Organization', name: 'Better IELTS', url: 'https://betterielts.com' },
+            }),
+          }}
+        />
 
         {/* Body */}
         <article className="text-sm sm:text-base">

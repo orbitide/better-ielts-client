@@ -3,7 +3,11 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { ArrowRight } from 'lucide-react'
 
-export const metadata = { title: 'Vocabulary' }
+export const metadata = {
+  title: 'Vocabulary',
+  description:
+    'Build your IELTS vocabulary with topic-specific flashcard decks. Covers Academic Word List, common topics, and high-frequency IELTS vocabulary.',
+}
 
 export default async function VocabularyPage() {
   const topics = await getAllVocabTopics()

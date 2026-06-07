@@ -4,7 +4,11 @@ import { Badge } from '@/components/ui/badge'
 import { Check, Zap } from 'lucide-react'
 import Link from 'next/link'
 
-export const metadata = { title: 'Pricing' }
+export const metadata = {
+  title: 'Pricing',
+  description:
+    'Simple, transparent pricing for IELTS preparation. Start free, upgrade to unlock full mock tests, AI writing feedback, and personalised study plans.',
+}
 
 const plans = [
   {

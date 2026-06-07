@@ -15,12 +15,28 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://betterielts.com'),
   title: {
     default: 'Better IELTS — Achieve Your Target Band',
     template: '%s | Better IELTS',
   },
   description:
     'Prepare for IELTS with structured courses, practice tests, mock exams, and personalised study plans. Target Band 7+ with Better IELTS.',
+  openGraph: {
+    type: 'website',
+    siteName: 'Better IELTS',
+    title: 'Better IELTS — Achieve Your Target Band',
+    description:
+      'Prepare for IELTS with structured courses, practice tests, mock exams, and personalised study plans.',
+    url: 'https://betterielts.com',
+    locale: 'en_GB',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Better IELTS — Achieve Your Target Band',
+    description:
+      'Prepare for IELTS with structured courses, practice tests, mock exams, and personalised study plans.',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
