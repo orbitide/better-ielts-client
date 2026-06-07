@@ -1,10 +1,11 @@
-import { getAllBlogPosts } from '@/lib/data/blog'
+import { getAllBlogPosts, getBlogPostsByCategory } from '@/lib/data/blog'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Clock, Calendar } from 'lucide-react'
 import { formatDate } from '@/lib/utils/format'
+import type { BlogCategory } from '@/lib/types/blog'
 
-export const metadata = { title: 'Blog' }
+const BLOG_CATEGORIES: BlogCategory[] = ['tips', 'grammar', 'strategy', 'vocabulary', 'news']
 
 const categoryColor: Record<string, string> = {
   tips: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
@@ -14,21 +15,66 @@ const categoryColor: Record<string, string> = {
   news: 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300',
 }
 
-export default async function BlogPage() {
-  const posts = await getAllBlogPosts()
-  const [featured, ...rest] = posts
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>
+}) {
+  const { category } = await searchParams
+  return { title: category ? `Blog — ${category}` : 'Blog' }
+}
+
+export default async function BlogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>
+}) {
+  const { category } = await searchParams
+
+  const activeCategory: BlogCategory | undefined = BLOG_CATEGORIES.includes(category as BlogCategory)
+    ? (category as BlogCategory)
+    : undefined
+
+  const posts = activeCategory
+    ? await getBlogPostsByCategory(activeCategory)
+    : await getAllBlogPosts()
+
+  const featured = !activeCategory ? posts[0] : null
+  const rest = !activeCategory ? posts.slice(1) : posts
 
   return (
     <div className="py-12 min-h-[85vh]">
       <div className="container mx-auto px-4 max-w-7xl">
-        <div className="mb-10">
+        <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight mb-3">IELTS Blog</h1>
           <p className="text-muted-foreground text-lg">
             Expert tips, strategies, and guides to help you prepare effectively for the IELTS exam.
           </p>
         </div>
 
-        {/* Featured post */}
+        {/* Category filter pills */}
+        <div className="flex gap-2 flex-wrap mb-8">
+          <Link href="/blog">
+            <Badge
+              variant={!activeCategory ? 'default' : 'secondary'}
+              className="cursor-pointer capitalize"
+            >
+              All
+            </Badge>
+          </Link>
+          {BLOG_CATEGORIES.map((cat) => (
+            <Link key={cat} href={`/blog?category=${cat}`}>
+              <Badge
+                variant={activeCategory === cat ? 'default' : 'secondary'}
+                className={`cursor-pointer capitalize ${activeCategory !== cat ? categoryColor[cat] : ''}`}
+              >
+                {cat}
+              </Badge>
+            </Link>
+          ))}
+        </div>
+
+        {/* Featured post — only shown when no category filter is active */}
         {featured && (
           <Link href={`/blog/${featured.slug}`} className="group block rounded-2xl overflow-hidden border bg-card mb-8 hover:shadow-lg transition-shadow">
             <div className="grid grid-cols-1 md:grid-cols-2">
@@ -60,7 +106,7 @@ export default async function BlogPage() {
           </Link>
         )}
 
-        {/* Rest of posts */}
+        {/* Post grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {rest.map((post) => (
             <Link key={post.id} href={`/blog/${post.slug}`} className="group rounded-xl border bg-card overflow-hidden hover:shadow-md transition-shadow">
@@ -87,6 +133,12 @@ export default async function BlogPage() {
             </Link>
           ))}
         </div>
+
+        {rest.length === 0 && (
+          <div className="text-center py-16 text-muted-foreground text-sm">
+            No posts in this category yet.
+          </div>
+        )}
       </div>
     </div>
   )
