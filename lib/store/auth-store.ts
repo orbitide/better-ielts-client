@@ -3,17 +3,23 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { User } from '@/lib/types/user'
-import { mockUser } from '@/lib/mock/users'
-import { DUMMY_CREDENTIALS } from '@/lib/auth/dummy-credentials'
+import {
+  loginAction,
+  registerAction,
+  googleAuthAction,
+  logoutAction,
+  refreshAction,
+} from '@/app/actions/auth'
 
 type AuthState = {
   user: User | null
   isAuthenticated: boolean
   _hasHydrated: boolean
-  loginWithEmail: (email: string, password: string) => boolean
-  loginWithGoogle: () => void
-  register: (name: string, email: string, password: string) => void
-  logout: () => void
+  loginWithEmail: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>
+  loginWithGoogle: (idToken: string) => Promise<{ ok: boolean; error?: string }>
+  register: (name: string, email: string, password: string) => Promise<{ ok: boolean; error?: string }>
+  logout: () => Promise<void>
+  refresh: () => Promise<boolean>
   setHasHydrated: (has: boolean) => void
 }
 
@@ -23,24 +29,39 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAuthenticated: false,
       _hasHydrated: false,
-      loginWithEmail: (email, password) => {
-        if (
-          email === DUMMY_CREDENTIALS.email &&
-          password === DUMMY_CREDENTIALS.password
-        ) {
-          set({ user: mockUser, isAuthenticated: true })
-          return true
+      loginWithEmail: async (email, password) => {
+        const result = await loginAction(email, password)
+        if (result.ok) {
+          set({ user: result.user, isAuthenticated: true })
+          return { ok: true }
         }
-        return false
+        return { ok: false, error: result.error }
       },
-      loginWithGoogle: () => set({ user: mockUser, isAuthenticated: true }),
-      register: (name, email) => {
-        set({
-          user: { ...mockUser, name, email },
-          isAuthenticated: true,
-        })
+      loginWithGoogle: async (idToken) => {
+        const result = await googleAuthAction(idToken)
+        if (result.ok) {
+          set({ user: result.user, isAuthenticated: true })
+          return { ok: true }
+        }
+        return { ok: false, error: result.error }
       },
-      logout: () => set({ user: null, isAuthenticated: false }),
+      register: async (name, email, password) => {
+        const result = await registerAction(name, email, password)
+        if (result.ok) {
+          set({ user: result.user, isAuthenticated: true })
+          return { ok: true }
+        }
+        return { ok: false, error: result.error }
+      },
+      logout: async () => {
+        await logoutAction()
+        set({ user: null, isAuthenticated: false })
+      },
+      refresh: async () => {
+        const ok = await refreshAction()
+        if (!ok) set({ user: null, isAuthenticated: false })
+        return ok
+      },
       setHasHydrated: (has) => set({ _hasHydrated: has }),
     }),
     {

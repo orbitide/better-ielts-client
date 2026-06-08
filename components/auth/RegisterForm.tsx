@@ -8,7 +8,6 @@ import { BrandName } from '@/components/layout/BrandName'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { DUMMY_CREDENTIALS } from '@/lib/auth/dummy-credentials'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { AuthDivider } from './AuthDivider'
 import { GoogleButton } from './GoogleButton'
@@ -16,23 +15,30 @@ import { GoogleButton } from './GoogleButton'
 export function RegisterForm() {
   const router = useRouter()
   const register = useAuthStore((s) => s.register)
-  const loginWithGoogle = useAuthStore((s) => s.loginWithGoogle)
 
-  const [name, setName] = useState<string>(DUMMY_CREDENTIALS.name)
-  const [email, setEmail] = useState<string>(DUMMY_CREDENTIALS.email)
-  const [password, setPassword] = useState<string>(DUMMY_CREDENTIALS.password)
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  function handleGoogleSignup() {
-    loginWithGoogle()
-    router.push('/dashboard')
-  }
-
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setError(null)
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.')
+      return
+    }
+
     setLoading(true)
-    register(name, email, password)
-    router.push('/dashboard')
+    const { ok, error: regError } = await register(name, email, password)
+    if (ok) {
+      router.push('/dashboard')
+    } else {
+      setError(regError ?? 'Registration failed. Please try again.')
+      setLoading(false)
+    }
   }
 
   return (
@@ -48,7 +54,12 @@ export function RegisterForm() {
           <CardDescription>Start preparing for your target band score</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <GoogleButton onClick={handleGoogleSignup} label="Sign up with Google" />
+          <GoogleButton
+            onClick={() => {
+              alert('Google sign-in requires Google Client ID configuration.')
+            }}
+            label="Sign up with Google"
+          />
 
           <AuthDivider />
 
@@ -95,9 +106,11 @@ export function RegisterForm() {
               />
             </div>
 
-            <div className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2.5 text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">Demo mode</span> — fields are pre-filled. Just click Create account.
-            </div>
+            {error && (
+              <p className="text-sm text-destructive" role="alert">
+                {error}
+              </p>
+            )}
 
             <Button type="submit" className="w-full" size="lg" disabled={loading}>
               {loading ? 'Creating account…' : 'Create account'}

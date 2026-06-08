@@ -8,7 +8,6 @@ import { BrandName } from '@/components/layout/BrandName'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { DUMMY_CREDENTIALS } from '@/lib/auth/dummy-credentials'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { AuthDivider } from './AuthDivider'
 import { GoogleButton } from './GoogleButton'
@@ -19,32 +18,26 @@ export function LoginForm() {
   const redirect = searchParams.get('redirect') ?? '/dashboard'
 
   const loginWithEmail = useAuthStore((s) => s.loginWithEmail)
-  const loginWithGoogle = useAuthStore((s) => s.loginWithGoogle)
   const authHydrated = useAuthStore((s) => s._hasHydrated)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
-  const [email, setEmail] = useState<string>(DUMMY_CREDENTIALS.email)
-  const [password, setPassword] = useState<string>(DUMMY_CREDENTIALS.password)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   if (!authHydrated || isAuthenticated) return null
 
-  function handleGoogleLogin() {
-    loginWithGoogle()
-    router.push(redirect)
-  }
-
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
     setLoading(true)
 
-    const ok = loginWithEmail(email, password)
+    const { ok, error: loginError } = await loginWithEmail(email, password)
     if (ok) {
       router.push(redirect)
     } else {
-      setError('Invalid email or password. Use the demo credentials shown below.')
+      setError(loginError ?? 'Invalid email or password.')
       setLoading(false)
     }
   }
@@ -62,7 +55,14 @@ export function LoginForm() {
           <CardDescription>Sign in to continue your IELTS preparation</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <GoogleButton onClick={handleGoogleLogin} label="Sign in with Google" />
+          <GoogleButton
+            onClick={() => {
+              // Google OAuth: requires Google Client ID in .env.local
+              // Will be enabled once Google:ClientId is configured
+              alert('Google sign-in requires Google Client ID configuration.')
+            }}
+            label="Sign in with Google"
+          />
 
           <AuthDivider />
 
@@ -82,9 +82,14 @@ export function LoginForm() {
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="password" className="text-sm font-medium">
-                Password
-              </label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="text-sm font-medium">
+                  Password
+                </label>
+                <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
               <Input
                 id="password"
                 type="password"
@@ -100,12 +105,6 @@ export function LoginForm() {
                 {error}
               </p>
             )}
-
-            <div className="rounded-lg border border-primary/20 bg-primary/5 px-3 py-2.5 text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">Demo credentials</span>
-              <br />
-              {DUMMY_CREDENTIALS.email} / {DUMMY_CREDENTIALS.password}
-            </div>
 
             <Button type="submit" className="w-full" size="lg" disabled={loading}>
               {loading ? 'Signing in…' : 'Sign in'}
