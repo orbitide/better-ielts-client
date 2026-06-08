@@ -1,4 +1,11 @@
-export type BlogCategory = 'tips' | 'grammar' | 'strategy' | 'vocabulary' | 'news'
+export type BlogCategory = string
+
+export type BlogSeo = {
+  metaTitle?: string
+  metaDescription?: string
+  focusKeyword?: string
+  ogImage?: string
+}
 
 export type BlogPost = {
   id: string
@@ -16,4 +23,5 @@ export type BlogPost = {
   readingTimeMinutes: number
   tags: string[]
   category: BlogCategory
+  seo?: BlogSeo
 }

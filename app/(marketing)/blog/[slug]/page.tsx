@@ -5,12 +5,20 @@ import { Badge } from '@/components/ui/badge'
 import { Clock, Calendar, ArrowLeft } from 'lucide-react'
 import { formatDate } from '@/lib/utils/format'
 
-const categoryColor: Record<string, string> = {
-  tips: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-  grammar: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
-  strategy: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
-  vocabulary: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
-  news: 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300',
+const CATEGORY_COLORS = [
+  'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+  'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+  'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
+  'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
+  'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300',
+  'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300',
+  'bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300',
+]
+
+function getCategoryColor(category: string): string {
+  let hash = 0
+  for (let i = 0; i < category.length; i++) hash = (hash * 31 + category.charCodeAt(i)) & 0xffffffff
+  return CATEGORY_COLORS[Math.abs(hash) % CATEGORY_COLORS.length]
 }
 
 function renderInline(text: string) {
@@ -43,22 +51,28 @@ function renderMarkdown(content: string) {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const post = await getBlogPost(slug)
+  if (!post) return { title: 'Blog' }
+
+  const seoTitle = post.seo?.metaTitle ?? post.title
+  const seoDesc  = post.seo?.metaDescription ?? post.excerpt
+  const seoImage = post.seo?.ogImage ?? post.coverImageUrl
+
   return {
-    title: post?.title ?? 'Blog',
-    description: post?.excerpt,
+    title: seoTitle,
+    description: seoDesc,
     openGraph: {
-      title: post?.title,
-      description: post?.excerpt,
+      title: seoTitle,
+      description: seoDesc,
       type: 'article',
-      publishedTime: post?.publishedAt,
-      authors: post?.author.name ? [post.author.name] : undefined,
-      images: post?.coverImageUrl ? [{ url: post.coverImageUrl }] : undefined,
+      publishedTime: post.publishedAt,
+      authors: post.author.name ? [post.author.name] : undefined,
+      images: seoImage ? [{ url: seoImage }] : undefined,
     },
     twitter: {
       card: 'summary_large_image',
-      title: post?.title,
-      description: post?.excerpt,
-      images: post?.coverImageUrl ? [post.coverImageUrl] : undefined,
+      title: seoTitle,
+      description: seoDesc,
+      images: seoImage ? [seoImage] : undefined,
     },
   }
 }
@@ -89,7 +103,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
         </div>
 
         {/* Article header */}
-        <Badge variant="secondary" className={`${categoryColor[post.category]} mb-4 capitalize`}>
+        <Badge variant="secondary" className={`${getCategoryColor(post.category)} mb-4 capitalize`}>
           {post.category}
         </Badge>
         <h1 className="text-3xl font-bold tracking-tight mb-4">{post.title}</h1>
@@ -133,9 +147,9 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'BlogPosting',
-              headline: post.title,
-              description: post.excerpt,
-              image: post.coverImageUrl,
+              headline: post.seo?.metaTitle ?? post.title,
+              description: post.seo?.metaDescription ?? post.excerpt,
+              image: post.seo?.ogImage ?? post.coverImageUrl,
               author: { '@type': 'Person', name: post.author.name },
               datePublished: post.publishedAt,
               publisher: { '@type': 'Organization', name: 'Better IELTS', url: 'https://betterielts.com' },

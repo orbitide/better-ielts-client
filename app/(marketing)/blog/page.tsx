@@ -3,16 +3,21 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Clock, Calendar } from 'lucide-react'
 import { formatDate } from '@/lib/utils/format'
-import type { BlogCategory } from '@/lib/types/blog'
 
-const BLOG_CATEGORIES: BlogCategory[] = ['tips', 'grammar', 'strategy', 'vocabulary', 'news']
+const CATEGORY_COLORS = [
+  'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+  'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+  'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
+  'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
+  'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300',
+  'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300',
+  'bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300',
+]
 
-const categoryColor: Record<string, string> = {
-  tips: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-  grammar: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
-  strategy: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
-  vocabulary: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
-  news: 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300',
+function getCategoryColor(category: string): string {
+  let hash = 0
+  for (let i = 0; i < category.length; i++) hash = (hash * 31 + category.charCodeAt(i)) & 0xffffffff
+  return CATEGORY_COLORS[Math.abs(hash) % CATEGORY_COLORS.length]
 }
 
 export async function generateMetadata({
@@ -37,13 +42,12 @@ export default async function BlogPage({
 }) {
   const { category } = await searchParams
 
-  const activeCategory: BlogCategory | undefined = BLOG_CATEGORIES.includes(category as BlogCategory)
-    ? (category as BlogCategory)
-    : undefined
-
-  const posts = activeCategory
-    ? await getBlogPostsByCategory(activeCategory)
+  const posts = category
+    ? await getBlogPostsByCategory(category)
     : await getAllBlogPosts()
+
+  const activeCategory = category ?? undefined
+  const allCategories = [...new Set(posts.map((p) => p.category))].sort()
 
   const featured = !activeCategory ? posts[0] : null
   const rest = !activeCategory ? posts.slice(1) : posts
@@ -68,11 +72,11 @@ export default async function BlogPage({
               All
             </Badge>
           </Link>
-          {BLOG_CATEGORIES.map((cat) => (
-            <Link key={cat} href={`/blog?category=${cat}`}>
+          {allCategories.map((cat) => (
+            <Link key={cat} href={`/blog?category=${encodeURIComponent(cat)}`}>
               <Badge
                 variant={activeCategory === cat ? 'default' : 'secondary'}
-                className={`cursor-pointer capitalize ${activeCategory !== cat ? categoryColor[cat] : ''}`}
+                className={`cursor-pointer capitalize ${activeCategory !== cat ? getCategoryColor(cat) : ''}`}
               >
                 {cat}
               </Badge>
@@ -92,7 +96,7 @@ export default async function BlogPage({
                 />
               </div>
               <div className="p-8 flex flex-col justify-center">
-                <Badge variant="secondary" className={`${categoryColor[featured.category]} mb-3 w-fit capitalize`}>
+                <Badge variant="secondary" className={`${getCategoryColor(featured.category)} mb-3 w-fit capitalize`}>
                   {featured.category}
                 </Badge>
                 <h2 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
@@ -124,7 +128,7 @@ export default async function BlogPage({
                 />
               </div>
               <div className="p-5">
-                <Badge variant="secondary" className={`${categoryColor[post.category]} mb-3 text-xs capitalize`}>
+                <Badge variant="secondary" className={`${getCategoryColor(post.category)} mb-3 text-xs capitalize`}>
                   {post.category}
                 </Badge>
                 <h3 className="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-primary transition-colors">

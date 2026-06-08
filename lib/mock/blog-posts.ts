@@ -13,6 +13,11 @@ export const blogPosts: BlogPost[] = [
     readingTimeMinutes: 7,
     tags: ['Reading', 'Strategies', 'Time Management', 'Band 7'],
     category: 'strategy',
+    seo: {
+      metaTitle: '7 IELTS Reading Strategies to Boost Your Band Score',
+      metaDescription: 'Struggling with time in the IELTS Reading test? These 7 examiner-approved techniques help you tackle all question types faster and more accurately.',
+      focusKeyword: 'IELTS reading strategies',
+    },
   },
   {
     id: 'blog-2',
@@ -26,6 +31,11 @@ export const blogPosts: BlogPost[] = [
     readingTimeMinutes: 9,
     tags: ['Writing', 'Task 2', 'Common Mistakes', 'Band Scores'],
     category: 'tips',
+    seo: {
+      metaTitle: '10 IELTS Writing Task 2 Mistakes That Cost You Marks',
+      metaDescription: 'An IELTS examiner reveals the 10 most common Writing Task 2 errors she sees every day — and the exact fixes that will lift your band score.',
+      focusKeyword: 'IELTS Writing Task 2 mistakes',
+    },
   },
   {
     id: 'blog-3',
@@ -39,6 +49,12 @@ export const blogPosts: BlogPost[] = [
     readingTimeMinutes: 6,
     tags: ['Vocabulary', 'Environment', 'Speaking', 'Writing'],
     category: 'vocabulary',
+    seo: {
+      metaTitle: '30 IELTS Environment Vocabulary Words You Must Know',
+      metaDescription: 'Climate change and sustainability appear in nearly every IELTS exam. Master these 30 high-frequency environment words and collocations to score Band 7+.',
+      focusKeyword: 'IELTS environment vocabulary',
+      ogImage: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200&q=80',
+    },
   },
   {
     id: 'blog-4',
