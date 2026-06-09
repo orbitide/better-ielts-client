@@ -1,18 +1,14 @@
 import { cache } from 'react'
-import { delay } from '@/lib/utils/delay'
-import { mockUser, bandHistory, recentActivity } from '@/lib/mock/users'
+import { fetchCurrentUser, fetchBandHistory } from '@/lib/api/user'
 
 export const getCurrentUser = cache(async () => {
-  await delay(150)
-  return mockUser
+  return fetchCurrentUser()
 })
 
 export const getBandHistory = cache(async () => {
-  await delay(150)
-  return bandHistory
+  return fetchBandHistory()
 })
 
 export const getRecentActivity = cache(async () => {
-  await delay(150)
-  return recentActivity
+  return []
 })

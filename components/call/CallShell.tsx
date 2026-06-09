@@ -16,7 +16,6 @@ import { ExamToolbar } from '@/components/exam/ExamToolbar'
 import { ExamResultsScreen } from '@/components/exam/ExamResultsScreen'
 import { examExitHrefs } from '@/lib/utils/exam-routes'
 import { callSelectionTopics, callPromptCards } from '@/lib/mock/call-topics'
-import { mockUser } from '@/lib/mock/users'
 import type { CallPhase, CallPromptCard, CallSummary } from '@/lib/types/call'
 import { cn } from '@/lib/utils'
 
@@ -300,7 +299,7 @@ export function CallShell() {
   // ── Active call ────────────────────────────────────────────────────────────
   if (phase === 'active' && currentPrompt) {
     const TopicIcon = TOPIC_ICONS[currentPrompt.topicId] ?? Leaf
-    const userInitials = getInitials(mockUser.name)
+    const userInitials = 'ME'
 
     return (
       <div className="flex h-full flex-col">

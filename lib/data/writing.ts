@@ -1,14 +1,19 @@
 import { cache } from 'react'
-import { delay } from '@/lib/utils/delay'
-import { writingTasks } from '@/lib/mock/writing-tasks'
+import { fetchWritingTasks, fetchWritingTask } from '@/lib/api/ielts'
 import type { WritingTask } from '@/lib/types/writing'
 
 export const getAllWritingTasks = cache(async (): Promise<WritingTask[]> => {
-  await delay(200)
-  return writingTasks
+  try {
+    return (await fetchWritingTasks()) as WritingTask[]
+  } catch {
+    return []
+  }
 })
 
 export const getWritingTask = cache(async (id: string): Promise<WritingTask | null> => {
-  await delay(250)
-  return writingTasks.find((t) => t.id === id) ?? null
+  try {
+    return (await fetchWritingTask(id)) as WritingTask
+  } catch {
+    return null
+  }
 })

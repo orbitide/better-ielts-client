@@ -21,7 +21,11 @@ export default async function ExamGuidePublicPage() {
         </p>
       </div>
 
-      <ExamGuideShell data={guide} showPracticeLinks={true} />
+      {guide ? (
+        <ExamGuideShell data={guide} showPracticeLinks={true} />
+      ) : (
+        <p className="text-muted-foreground">Guide content is not available at this time.</p>
+      )}
 
       <div className="rounded-xl border bg-muted/40 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>

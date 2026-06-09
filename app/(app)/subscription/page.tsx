@@ -3,19 +3,15 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button-variants'
-import { billingHistory, planDetails } from '@/lib/mock/subscriptions'
-import { formatDate } from '@/lib/utils/format'
 import { Check } from 'lucide-react'
 import Link from 'next/link'
-import { cn } from '@/lib/utils'
 
 export const metadata = { title: 'Subscription' }
 
-const statusStyles = {
-  paid: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
-  pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
-  failed: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
-  refunded: 'bg-muted text-muted-foreground',
+const planDetails = {
+  free: { name: 'Free', price: '£0', period: 'forever' },
+  pro: { name: 'Pro', price: '£12', period: 'per month' },
+  elite: { name: 'Elite', price: '£29', period: 'per month' },
 } as const
 
 const planFeatures = {
@@ -36,14 +32,13 @@ const planFeatures = {
     '3 reading practice tests',
     '1 listening practice test',
     'Basic study plan',
-    'Community access',
   ],
 } as const
 
 export default async function SubscriptionPage() {
   const user = await getCurrentUser()
-  const plan = planDetails[user.plan]
-  const features = planFeatures[user.plan]
+  const plan = planDetails[user.plan as keyof typeof planDetails] ?? planDetails.free
+  const features = planFeatures[user.plan as keyof typeof planFeatures] ?? planFeatures.free
   const nextBilling = '2026-07-01'
 
   return (
@@ -68,7 +63,7 @@ export default async function SubscriptionPage() {
               <CardDescription className="mt-1">
                 {plan.price} {plan.period}
                 {user.plan !== 'free' && (
-                  <> · Next billing {formatDate(nextBilling)}</>
+                  <> · Next billing {nextBilling}</>
                 )}
               </CardDescription>
             </div>
@@ -95,36 +90,8 @@ export default async function SubscriptionPage() {
             <CardTitle>Billing history</CardTitle>
             <CardDescription>Your past invoices and payments</CardDescription>
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-muted-foreground">
-                    <th className="px-6 py-3 font-medium">Date</th>
-                    <th className="px-6 py-3 font-medium">Plan</th>
-                    <th className="px-6 py-3 font-medium">Amount</th>
-                    <th className="px-6 py-3 font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {billingHistory.map((record) => (
-                    <tr key={record.id} className="border-b last:border-0">
-                      <td className="px-6 py-3">{formatDate(record.date)}</td>
-                      <td className="px-6 py-3">{record.plan}</td>
-                      <td className="px-6 py-3 font-medium">{record.amount}</td>
-                      <td className="px-6 py-3">
-                        <Badge
-                          variant="secondary"
-                          className={cn('capitalize font-normal', statusStyles[record.status])}
-                        >
-                          {record.status}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">No billing history available.</p>
           </CardContent>
         </Card>
       )}

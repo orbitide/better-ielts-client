@@ -1,14 +1,19 @@
 import { cache } from 'react'
-import { delay } from '@/lib/utils/delay'
-import { speakingSessions } from '@/lib/mock/speaking-sessions'
+import { fetchSpeakingSessions, fetchSpeakingSession } from '@/lib/api/ielts'
 import type { SpeakingSession } from '@/lib/types/speaking'
 
 export const getAllSpeakingSessions = cache(async (): Promise<SpeakingSession[]> => {
-  await delay(200)
-  return speakingSessions
+  try {
+    return (await fetchSpeakingSessions()) as SpeakingSession[]
+  } catch {
+    return []
+  }
 })
 
 export const getSpeakingSession = cache(async (id: string): Promise<SpeakingSession | null> => {
-  await delay(250)
-  return speakingSessions.find((s) => s.id === id) ?? null
+  try {
+    return (await fetchSpeakingSession(id)) as SpeakingSession
+  } catch {
+    return null
+  }
 })

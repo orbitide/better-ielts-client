@@ -1,5 +1,4 @@
 import { cache } from 'react'
-import { delay } from '@/lib/utils/delay'
 import { getCurrentUser } from '@/lib/data/users'
 import { getStudyPlan } from '@/lib/data/study-plan'
 import { getAllReadingTests } from '@/lib/data/reading'
@@ -72,39 +71,7 @@ function findWeakestSkill(bands: BandScore, target: number): PracticeSkill {
   })
 }
 
-const practiceSeriesMap: Record<string, PracticeTestSeries> = {
-  'set-1': { id: 'set-1', label: 'Practice Set 1' },
-  'set-2': { id: 'set-2', label: 'Practice Set 2' },
-}
-
-const readingSeriesById: Record<string, string> = {
-  'test-1': 'set-1',
-  'test-2': 'set-1',
-  'test-3': 'set-2',
-}
-
-const listeningSeriesById: Record<string, string> = {
-  'test-1': 'set-1',
-}
-
-const writingSeriesById: Record<string, string> = {
-  'task1-1': 'set-1',
-  'task2-1': 'set-1',
-  'task1-2': 'set-1',
-  'task2-2': 'set-1',
-  'task1-3': 'set-2',
-  'task2-3': 'set-2',
-  'task2-4': 'set-2',
-}
-
-const speakingSeriesById: Record<string, string> = {
-  'session-1': 'set-1',
-  'session-2': 'set-1',
-  'session-3': 'set-2',
-}
-
 export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> => {
-  await delay(100)
   const [reading, listening, writing, speaking] = await Promise.all([
     getAllReadingTests(),
     getAllListeningTests(),
@@ -127,7 +94,6 @@ export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> 
         href: `/reading/${t.id}`,
         duration: `${t.durationMinutes} min`,
         meta: `${t.sections.length} passages · ${t.sections.reduce((n, s) => n + s.questions.length, 0)} questions`,
-        series: practiceSeriesMap[readingSeriesById[t.id]],
       })),
     },
     {
@@ -144,7 +110,6 @@ export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> 
         href: `/listening/${t.id}`,
         duration: `${t.durationMinutes} min`,
         meta: `${t.sections.length} sections · 40 questions`,
-        series: practiceSeriesMap[listeningSeriesById[t.id]],
       })),
     },
     {
@@ -161,7 +126,6 @@ export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> 
         href: `/writing/${t.id}`,
         duration: `${t.timeMinutes} min`,
         meta: formatWritingMeta(t.type, t.timeMinutes),
-        series: practiceSeriesMap[writingSeriesById[t.id]],
       })),
     },
     {
@@ -178,7 +142,6 @@ export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> 
         href: `/speaking/${s.id}`,
         duration: '11–14 min',
         meta: `${s.parts.length} parts`,
-        series: practiceSeriesMap[speakingSeriesById[s.id]],
       })),
     },
   ]
@@ -192,7 +155,7 @@ export const getSkillPracticeGroup = cache(async (skill: PracticeSkill): Promise
 export const getSkillPracticeRecommendation = cache(async (skill: PracticeSkill): Promise<PracticeRecommendation> => {
   const [user, plan, group] = await Promise.all([
     getCurrentUser(),
-    getStudyPlan('user-1'),
+    getStudyPlan(),
     getSkillPracticeGroup(skill),
   ])
 
@@ -200,24 +163,26 @@ export const getSkillPracticeRecommendation = cache(async (skill: PracticeSkill)
     throw new Error(`Unknown practice skill: ${skill}`)
   }
 
-  const pendingTask = plan.days
-    .flatMap((d) => d.tasks)
-    .find((t) => t.status === 'pending' && t.category === skill)
+  if (plan) {
+    const pendingTask = plan.days
+      .flatMap((d) => d.tasks)
+      .find((t) => t.status === 'pending' && t.category === skill)
 
-  if (pendingTask) {
-    return {
-      skill,
-      label: skillLabels[skill],
-      title: pendingTask.title,
-      description: pendingTask.description,
-      reason: 'Next on your study plan',
-      href: pendingTask.linkHref,
-      duration: `${pendingTask.durationMinutes} min`,
+    if (pendingTask) {
+      return {
+        skill,
+        label: skillLabels[skill],
+        title: pendingTask.title,
+        description: pendingTask.description,
+        reason: 'Next on your study plan',
+        href: pendingTask.linkHref,
+        duration: `${pendingTask.durationMinutes} min`,
+      }
     }
   }
 
   const bandGap = user.targetBand - user.currentBand[skill]
-  if (bandGap > 0) {
+  if (bandGap > 0 && group.tests.length > 0) {
     const recommendedTest = group.tests[0]
     return {
       skill,
@@ -231,44 +196,55 @@ export const getSkillPracticeRecommendation = cache(async (skill: PracticeSkill)
     }
   }
 
-  const recommendedTest = group.tests[0]
+  if (group.tests.length > 0) {
+    const recommendedTest = group.tests[0]
+    return {
+      skill,
+      label: skillLabels[skill],
+      title: recommendedTest.title,
+      description: group.description,
+      reason: 'Start here',
+      href: recommendedTest.href,
+      duration: recommendedTest.duration,
+    }
+  }
+
   return {
     skill,
     label: skillLabels[skill],
-    title: recommendedTest.title,
+    title: `${skillLabels[skill]} Practice`,
     description: group.description,
-    reason: 'Start here',
-    href: recommendedTest.href,
-    duration: recommendedTest.duration,
+    reason: 'No tests available yet',
+    href: group.href,
+    duration: '',
   }
 })
 
 export const getPracticeRecommendation = cache(async (): Promise<PracticeRecommendation> => {
   const [user, plan, catalog] = await Promise.all([
     getCurrentUser(),
-    getStudyPlan('user-1'),
+    getStudyPlan(),
     getPracticeCatalog(),
   ])
 
   const skillCategories = new Set<PracticeSkill>(['reading', 'listening', 'writing', 'speaking'])
 
-  const pendingTask = plan.days
-    .flatMap((d) => d.tasks)
-    .find((t) => t.status === 'pending' && skillCategories.has(t.category as PracticeSkill))
+  if (plan) {
+    const pendingTask = plan.days
+      .flatMap((d) => d.tasks)
+      .find((t) => t.status === 'pending' && skillCategories.has(t.category as PracticeSkill))
 
-  if (pendingTask && skillCategories.has(pendingTask.category as PracticeSkill)) {
-    const skill = pendingTask.category as PracticeSkill
-    const group = catalog.find((g) => g.skill === skill)!
-    const matchedTest = group.tests.find((t) => pendingTask.linkHref.includes(t.id))
-
-    return {
-      skill,
-      label: skillLabels[skill],
-      title: pendingTask.title,
-      description: pendingTask.description,
-      reason: 'Next on your study plan',
-      href: pendingTask.linkHref,
-      duration: `${pendingTask.durationMinutes} min`,
+    if (pendingTask && skillCategories.has(pendingTask.category as PracticeSkill)) {
+      const skill = pendingTask.category as PracticeSkill
+      return {
+        skill,
+        label: skillLabels[skill],
+        title: pendingTask.title,
+        description: pendingTask.description,
+        reason: 'Next on your study plan',
+        href: pendingTask.linkHref,
+        duration: `${pendingTask.durationMinutes} min`,
+      }
     }
   }
 
@@ -276,6 +252,19 @@ export const getPracticeRecommendation = cache(async (): Promise<PracticeRecomme
   const group = catalog.find((g) => g.skill === weakest)!
   const recommendedTest = group.tests[0]
   const bandGap = user.targetBand - user.currentBand[weakest]
+
+  if (!recommendedTest) {
+    return {
+      skill: weakest,
+      label: skillLabels[weakest],
+      title: `${skillLabels[weakest]} Practice`,
+      description: group.description,
+      reason: 'No tests available yet',
+      href: group.href,
+      duration: '',
+      bandGap,
+    }
+  }
 
   return {
     skill: weakest,

@@ -16,7 +16,6 @@ export default function robots(): MetadataRoute.Robots {
           '/mock-test/',
           '/vocabulary/',
           '/lesson/',
-          '/community/',
           '/account',
           '/settings',
           '/subscription',

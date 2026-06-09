@@ -1,7 +1,7 @@
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button-variants'
-import { BookOpen, Mail, MessageCircle, FileQuestion } from 'lucide-react'
+import { BookOpen, Mail, FileQuestion } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata = { title: 'Support' }
@@ -18,12 +18,6 @@ const helpTopics = [
     title: 'IELTS Resources',
     description: 'Strategy articles, grammar tips, and examiner advice.',
     href: '/blog',
-  },
-  {
-    icon: MessageCircle,
-    title: 'Community',
-    description: 'Ask questions and learn from other candidates.',
-    href: '/community',
   },
 ]
 

@@ -23,9 +23,9 @@ export default async function DashboardPage() {
     getStudyPlan('user-1'),
   ])
 
-  const todayPlan = studyPlan.days.find(
-    (d) => d.date === new Date().toISOString().slice(0, 10)
-  ) ?? studyPlan.days[studyPlan.days.length - 1]
+  const todayPlan = studyPlan
+    ? (studyPlan.days.find((d) => d.date === new Date().toISOString().slice(0, 10)) ?? studyPlan.days[studyPlan.days.length - 1])
+    : null
 
   const pendingTasks = todayPlan?.tasks.filter((t) => t.status === 'pending') ?? []
   const completedToday = todayPlan?.tasks.filter((t) => t.status === 'completed').length ?? 0
@@ -38,12 +38,12 @@ export default async function DashboardPage() {
   const weakestGap = user.targetBand - user.currentBand[weakestSkill]
 
   const skillLinks: Record<string, string> = {
-    reading: '/reading/test-1',
-    listening: '/listening/test-1',
-    writing: '/writing/task2-1',
-    speaking: '/speaking/session-1',
+    reading: '/practice/reading',
+    listening: '/practice/listening',
+    writing: '/practice/writing',
+    speaking: '/practice/speaking',
     vocabulary: '/vocabulary/environment',
-    'mock-test': '/mock-test/full-1',
+    'mock-test': '/practice',
   }
   const skillIcons: Record<string, React.ElementType> = {
     reading: BookMarked,
@@ -80,7 +80,7 @@ export default async function DashboardPage() {
         })()}
         description="Here's your IELTS preparation summary for today."
       >
-        <Link href="/mock-test/full-1" className={cn(buttonVariants(), 'gap-2')}>
+        <Link href="/mock-tests" className={cn(buttonVariants(), 'gap-2')}>
           <ClipboardList className="h-4 w-4" />
           Take Mock Test
         </Link>

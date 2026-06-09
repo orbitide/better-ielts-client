@@ -1,8 +1,11 @@
 import { cache } from 'react'
-import { delay } from '@/lib/utils/delay'
-import { examGuideData } from '@/lib/mock/exam-guide'
+import { fetchExamGuide } from '@/lib/api/ielts'
+import type { ExamGuideData } from '@/lib/types/exam-guide'
 
-export const getExamGuide = cache(async () => {
-  await delay(100)
-  return examGuideData
+export const getExamGuide = cache(async (): Promise<ExamGuideData | null> => {
+  try {
+    return (await fetchExamGuide()) as ExamGuideData
+  } catch {
+    return null
+  }
 })

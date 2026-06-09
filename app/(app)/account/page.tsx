@@ -5,20 +5,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { formatBand, formatDate } from '@/lib/utils/format'
-import { planDetails, billingHistory } from '@/lib/mock/subscriptions'
 import { Clock, Target, Mail, Calendar, Crown, ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
 
 export const metadata = { title: 'My Account' }
 
+const planDetails = {
+  free: { name: 'Free', price: '£0', period: 'forever' },
+  pro: { name: 'Pro', price: '£12', period: 'per month' },
+  elite: { name: 'Elite', price: '£29', period: 'per month' },
+} as const
+
 export default async function AccountPage() {
   const user = await getCurrentUser()
-  const plan = planDetails[user.plan]
-  const lastBilling = billingHistory[0]
-  const nextRenewal = lastBilling
-    ? new Date(new Date(lastBilling.date).setMonth(new Date(lastBilling.date).getMonth() + 1))
-        .toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-    : null
+  const plan = planDetails[user.plan as keyof typeof planDetails] ?? planDetails.free
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-3xl mx-auto min-h-full">
@@ -110,9 +110,6 @@ export default async function AccountPage() {
             <Badge className="bg-green-500/10 text-green-600 border border-green-200 hover:bg-green-500/10">Active</Badge>
           </div>
           <div className="flex items-center justify-between border-t pt-3">
-            {nextRenewal && (
-              <p className="text-xs text-muted-foreground">Next renewal: {nextRenewal}</p>
-            )}
             <Link href="/subscription#billing" className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground ml-auto">
               View billing history
             </Link>

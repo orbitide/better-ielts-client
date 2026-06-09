@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { LayoutDashboard, BookMarked, Headphones, PenLine, Mic, ClipboardList, Brain, Users, CalendarDays, BarChart3, Calculator, GraduationCap, PhoneCall } from 'lucide-react'
+import { LayoutDashboard, BookMarked, Headphones, PenLine, Mic, ClipboardList, Brain, CalendarDays, BarChart3, Calculator, GraduationCap, PhoneCall } from 'lucide-react'
 import { BrandMark } from './BrandMark'
 import { BrandName } from './BrandName'
 import { SidebarNavLink } from './SidebarNavLink'
@@ -16,12 +16,10 @@ const navItems = [
   { href: '/call', label: 'Speaking Call', icon: PhoneCall, matchPaths: ['/call'] },
   { type: 'divider', label: 'Learn' },
   { href: '/vocabulary/environment', label: 'Vocabulary', icon: Brain },
-  { href: '/mock-test/full-1', label: 'Mock Tests', icon: ClipboardList },
+  { href: '/mock-tests', label: 'Mock Tests', icon: ClipboardList, matchPaths: ['/mock-tests', '/mock-test'] },
   { type: 'divider', label: 'Tools' },
   { href: '/tools/band-calculator', label: 'Band Calculator', icon: Calculator },
   { href: '/exam-guide', label: 'Exam Guide', icon: GraduationCap },
-  { type: 'divider', label: 'Community' },
-  { href: '/community', label: 'Community', icon: Users },
 ]
 
 export function AppSidebar({ className }: { className?: string }) {

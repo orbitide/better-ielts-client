@@ -46,7 +46,6 @@ export const config = {
     '/speaking/:path*',
     '/mock-test/:path*',
     '/vocabulary/:path*',
-    '/community/:path*',
     '/account/:path*',
     '/settings/:path*',
     '/support/:path*',

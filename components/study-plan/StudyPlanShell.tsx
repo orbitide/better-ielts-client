@@ -13,7 +13,7 @@ import type { StudyPlan } from '@/lib/types/study-plan'
 import type { User } from '@/lib/types/user'
 
 interface StudyPlanShellProps {
-  fallbackPlan: StudyPlan
+  fallbackPlan: StudyPlan | null
   user: User
 }
 
@@ -23,14 +23,36 @@ export function StudyPlanShell({ fallbackPlan, user }: StudyPlanShellProps) {
   const updateTaskStatus = useStudyPlanStore((s) => s.updateTaskStatus)
 
   const hasPlan = hasHydrated && !!storePlan
-  // Use store plan once hydrated; fall back to server-fetched mock otherwise
   const plan = hasPlan ? storePlan! : fallbackPlan
 
-  const totalCompletedMinutes = plan.days.reduce((sum, d) => sum + d.completedMinutes, 0)
-  const weeklyProgress = Math.round((totalCompletedMinutes / plan.weeklyGoalMinutes) * 100)
+  const totalCompletedMinutes = plan?.days.reduce((sum, d) => sum + d.completedMinutes, 0) ?? 0
+  const weeklyProgress = plan ? Math.round((totalCompletedMinutes / plan.weeklyGoalMinutes) * 100) : 0
 
   function handleTaskComplete(taskId: string) {
     updateTaskStatus(taskId, 'completed')
+  }
+
+  if (!plan) {
+    return (
+      <>
+        <PageHeader
+          title="Study Plan"
+          description="Your personalised weekly learning schedule."
+        >
+          <BandBadge score={user.targetBand} />
+          <CreatePlanDialog
+            currentTargetBand={user.targetBand}
+            currentWeeklyGoalMinutes={300}
+            hasPlan={false}
+          />
+        </PageHeader>
+        <Card>
+          <CardContent className="py-12 text-center text-muted-foreground">
+            <p className="text-sm">No study plan yet. Create one to get started.</p>
+          </CardContent>
+        </Card>
+      </>
+    )
   }
 
   return (

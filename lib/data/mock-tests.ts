@@ -1,14 +1,19 @@
 import { cache } from 'react'
-import { delay } from '@/lib/utils/delay'
-import { mockTests } from '@/lib/mock/mock-tests'
+import { fetchMockTests, fetchMockTest } from '@/lib/api/ielts'
 import type { MockTest } from '@/lib/types/mock-test'
 
 export const getAllMockTests = cache(async (): Promise<MockTest[]> => {
-  await delay(200)
-  return mockTests
+  try {
+    return (await fetchMockTests()) as MockTest[]
+  } catch {
+    return []
+  }
 })
 
 export const getMockTest = cache(async (id: string): Promise<MockTest | null> => {
-  await delay(250)
-  return mockTests.find((t) => t.id === id) ?? null
+  try {
+    return (await fetchMockTest(id)) as MockTest
+  } catch {
+    return null
+  }
 })
