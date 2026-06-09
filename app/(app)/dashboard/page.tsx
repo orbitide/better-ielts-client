@@ -75,10 +75,47 @@ export default async function DashboardPage() {
               ? 'Good afternoon'
               : hour >= 17 && hour < 21
               ? 'Good evening'
-              : 'Good night'
-          return `${greeting}, ${user.name.split(' ')[0]} 👋`
+              : 'Hello'
+          return `${greeting}, ${user.name.split(' ')[0]}`
         })()}
-        description="Here's your IELTS preparation summary for today."
+        description={(() => {
+          const now = new Date()
+          const hour = now.getHours()
+          const dayOfYear = Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86400000)
+          const messages =
+            hour >= 5 && hour < 12
+              ? [
+                  'What would you like to work on today?',
+                  'A great day to sharpen your skills.',
+                  'Your IELTS goal is one session closer.',
+                  'Start strong — every practice counts.',
+                  'Ready to make progress this morning?',
+                ]
+              : hour >= 12 && hour < 17
+              ? [
+                  'Ready to keep the momentum going?',
+                  'Halfway through the day — keep it up.',
+                  'A focused session now goes a long way.',
+                  'What skill would you like to tackle next?',
+                  'Consistency builds band scores.',
+                ]
+              : hour >= 17 && hour < 21
+              ? [
+                  "Let's make the most of this study session.",
+                  'A productive evening starts here.',
+                  'Wind down the day with some good practice.',
+                  'You showed up — that already matters.',
+                  'Evening sessions build lasting habits.',
+                ]
+              : [
+                  'Ready to prepare for your IELTS journey?',
+                  'Burning the midnight oil — make it count.',
+                  'Every session brings you closer to your goal.',
+                  'Quiet hours, sharp focus.',
+                  'The dedicated ones study at any hour.',
+                ]
+          return messages[dayOfYear % messages.length]
+        })()}
       >
         <Link href="/mock-tests" className={cn(buttonVariants(), 'gap-2')}>
           <ClipboardList className="h-4 w-4" />
@@ -171,7 +208,7 @@ export default async function DashboardPage() {
           <CardContent className="space-y-2">
             {pendingTasks.length === 0 ? (
               <div className="text-center py-6 text-muted-foreground text-sm">
-                All tasks completed for today! 🎉
+                All tasks completed for today!
               </div>
             ) : (
               pendingTasks.slice(0, 4).map((task) => {

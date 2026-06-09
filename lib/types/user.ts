@@ -1,3 +1,13 @@
+export type RecentActivity = {
+  id: string
+  type: 'reading' | 'listening' | 'writing' | 'speaking' | 'vocabulary'
+  title: string
+  href: string
+  date: string
+  score?: string
+  band?: number
+}
+
 export type BandScore = {
   overall: number
   listening: number
