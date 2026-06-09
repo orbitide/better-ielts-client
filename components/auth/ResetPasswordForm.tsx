@@ -13,6 +13,7 @@ import { resetPasswordAction } from '@/app/actions/auth'
 export function ResetPasswordForm() {
   const searchParams = useSearchParams()
   const token = searchParams.get('token') ?? ''
+  const email = searchParams.get('email') ?? ''
 
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -34,7 +35,7 @@ export function ResetPasswordForm() {
     }
 
     setLoading(true)
-    const result = await resetPasswordAction(token, newPassword, confirmPassword)
+    const result = await resetPasswordAction(email, token, newPassword, confirmPassword)
     setLoading(false)
 
     if (result.ok) {
@@ -44,10 +45,10 @@ export function ResetPasswordForm() {
     }
   }
 
-  if (!token) {
+  if (!token || !email) {
     return (
       <div className="mx-auto w-full max-w-sm py-16 px-4 text-center">
-        <p className="text-destructive">Invalid or missing reset token.</p>
+        <p className="text-destructive">Invalid or missing reset link.</p>
         <Link href="/forgot-password" className="text-sm text-primary hover:underline mt-2 block">
           Request a new reset link
         </Link>

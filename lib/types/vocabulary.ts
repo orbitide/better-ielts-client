@@ -10,7 +10,7 @@ export type VocabWord = {
   phonetic: string
   definitions: WordDefinition[]
   synonyms: string[]
-  difficulty: 'easy' | 'medium' | 'hard'
+  difficulty: 'beginner' | 'intermediate' | 'advanced'
   isLearned: boolean
 }
 
