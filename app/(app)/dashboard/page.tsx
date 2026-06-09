@@ -42,7 +42,7 @@ export default async function DashboardPage() {
     listening: '/practice/listening',
     writing: '/practice/writing',
     speaking: '/practice/speaking',
-    vocabulary: '/vocabulary/environment',
+    vocabulary: '/vocabulary',
     'mock-test': '/practice',
   }
   const skillIcons: Record<string, React.ElementType> = {
