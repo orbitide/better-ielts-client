@@ -21,8 +21,8 @@ export function LoginForm() {
   const authHydrated = useAuthStore((s) => s._hasHydrated)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState('superadmin@betterielts.com')
+  const [password, setPassword] = useState('123456a')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
