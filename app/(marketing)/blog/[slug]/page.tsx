@@ -21,33 +21,6 @@ function getCategoryColor(category: string): string {
   return CATEGORY_COLORS[Math.abs(hash) % CATEGORY_COLORS.length]
 }
 
-function renderInline(text: string) {
-  const parts = text.split(/(\*\*[^*]+\*\*)/)
-  return parts.map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i}>{part.slice(2, -2)}</strong>
-    }
-    return part
-  })
-}
-
-function renderMarkdown(content: string) {
-  return content.split('\n\n').map((block, i) => {
-    if (block.startsWith('## ')) {
-      return (
-        <h2 key={i} className="text-xl font-bold mt-8 mb-3">
-          {renderInline(block.slice(3))}
-        </h2>
-      )
-    }
-    return (
-      <p key={i} className="text-muted-foreground leading-relaxed mb-4">
-        {renderInline(block)}
-      </p>
-    )
-  })
-}
-
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const post = await getBlogPost(slug)
@@ -158,9 +131,29 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
         />
 
         {/* Body */}
-        <article className="text-sm sm:text-base">
-          {renderMarkdown(post.content)}
-        </article>
+        <article
+          className="text-sm sm:text-base
+            [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mt-8 [&_h1]:mb-3
+            [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-8 [&_h2]:mb-3
+            [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-6 [&_h3]:mb-2
+            [&_h4]:text-base [&_h4]:font-semibold [&_h4]:mt-4 [&_h4]:mb-1
+            [&_p]:text-muted-foreground [&_p]:leading-relaxed [&_p]:mb-4
+            [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_ul]:text-muted-foreground
+            [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:text-muted-foreground
+            [&_li]:mb-1
+            [&_strong]:font-semibold [&_strong]:text-foreground [&_em]:italic
+            [&_u]:underline [&_s]:line-through
+            [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2
+            [&_blockquote]:border-l-4 [&_blockquote]:border-primary/40 [&_blockquote]:pl-4 [&_blockquote]:text-muted-foreground [&_blockquote]:italic [&_blockquote]:mb-4
+            [&_hr]:border-0 [&_hr]:border-t [&_hr]:border-border [&_hr]:my-6
+            [&_img]:max-w-full [&_img]:rounded-xl [&_img]:my-4 [&_img]:block
+            [&_pre]:rounded-lg [&_pre]:bg-muted [&_pre]:p-4 [&_pre]:overflow-x-auto [&_pre]:text-xs [&_pre]:mb-4
+            [&_code]:bg-muted [&_code]:rounded [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-xs [&_code]:font-mono
+            [&_table]:w-full [&_table]:border-collapse [&_table]:mb-4
+            [&_th]:border [&_th]:border-border [&_th]:px-3 [&_th]:py-2 [&_th]:bg-muted/60 [&_th]:font-semibold [&_th]:text-left [&_th]:text-sm
+            [&_td]:border [&_td]:border-border [&_td]:px-3 [&_td]:py-2 [&_td]:align-top [&_td]:text-sm"
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
 
         <div className="mt-12 pt-8 border-t">
           <Link

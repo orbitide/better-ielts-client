@@ -15,7 +15,7 @@ const navItems = [
   { href: '/practice/speaking', label: 'Speaking', icon: Mic, matchPaths: ['/practice/speaking', '/speaking'] },
   { href: '/call', label: 'Speaking Call', icon: PhoneCall, matchPaths: ['/call'] },
   { type: 'divider', label: 'Learn' },
-  { href: '/vocabulary/environment', label: 'Vocabulary', icon: Brain },
+  { href: '/vocabulary', label: 'Vocabulary', icon: Brain },
   { href: '/mock-tests', label: 'Mock Tests', icon: ClipboardList, matchPaths: ['/mock-tests', '/mock-test'] },
   { type: 'divider', label: 'Tools' },
   { href: '/tools/band-calculator', label: 'Band Calculator', icon: Calculator },
