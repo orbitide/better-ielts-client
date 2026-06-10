@@ -1,7 +1,7 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import serverApi from '@/lib/api/server'
+import http from '@/lib/api/http'
 import type { User } from '@/lib/types/user'
 
 type ApiUser = {
@@ -72,7 +72,7 @@ export async function loginAction(
   password: string
 ): Promise<{ ok: true; user: User } | { ok: false; error: string }> {
   try {
-    const { data } = await serverApi.post<ApiAuthResponse>('/api/auth/login', { email, password })
+    const { data } = await http.post<ApiAuthResponse>('/api/auth/login', { email, password })
     if (!data.success || !data.data?.token) {
       return { ok: false, error: data.message ?? 'Invalid email or password.' }
     }
@@ -90,7 +90,7 @@ export async function registerAction(
   password: string
 ): Promise<{ ok: true; user: User } | { ok: false; error: string }> {
   try {
-    const { data } = await serverApi.post<ApiAuthResponse>('/api/auth/register', { name, email, password })
+    const { data } = await http.post<ApiAuthResponse>('/api/auth/register', { name, email, password })
     if (!data.success || !data.data?.token) {
       return { ok: false, error: data.message ?? 'Registration failed.' }
     }
@@ -106,7 +106,7 @@ export async function googleAuthAction(
   idToken: string
 ): Promise<{ ok: true; user: User } | { ok: false; error: string }> {
   try {
-    const { data } = await serverApi.post<ApiAuthResponse>('/api/auth/google', { idToken })
+    const { data } = await http.post<ApiAuthResponse>('/api/auth/google', { idToken })
     if (!data.success || !data.data?.token) {
       return { ok: false, error: data.message ?? 'Google sign-in failed.' }
     }
@@ -120,7 +120,7 @@ export async function googleAuthAction(
 
 export async function logoutAction(): Promise<void> {
   try {
-    await serverApi.post('/api/auth/logout')
+    await http.post('/api/auth/logout')
   } catch {
     // Ignore — session will expire naturally
   }
@@ -130,7 +130,7 @@ export async function logoutAction(): Promise<void> {
 
 export async function refreshAction(): Promise<boolean> {
   try {
-    const { data } = await serverApi.post<ApiTokenResponse>('/api/auth/refresh')
+    const { data } = await http.post<ApiTokenResponse>('/api/auth/refresh')
     if (!data.success || !data.data) return false
     await setAuthCookie(data.data.accessToken, data.data.expiresIn)
     return true
@@ -141,7 +141,7 @@ export async function refreshAction(): Promise<boolean> {
 
 export async function forgotPasswordAction(email: string): Promise<{ ok: boolean; message: string }> {
   try {
-    const { data } = await serverApi.post<{ success: boolean; message?: string }>(
+    const { data } = await http.post<{ success: boolean; message?: string }>(
       '/api/auth/forgot-password',
       { email }
     )
@@ -158,7 +158,7 @@ export async function resetPasswordAction(
   confirmPassword: string
 ): Promise<{ ok: boolean; message: string }> {
   try {
-    const { data } = await serverApi.post<{ success: boolean; message?: string }>(
+    const { data } = await http.post<{ success: boolean; message?: string }>(
       '/api/auth/reset-password',
       { email, token, newPassword, confirmPassword }
     )

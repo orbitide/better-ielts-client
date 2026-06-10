@@ -1,8 +1,8 @@
-import serverApi from '@/lib/api/server'
+import http from '@/lib/api/http'
 import type { User } from '@/lib/types/user'
 
 export async function fetchCurrentUser(): Promise<User> {
-  const { data } = await serverApi.get('/api/users/me')
+  const { data } = await http.get('/api/users/me')
   const u = data.data
   return {
     id: u.id,
@@ -18,7 +18,7 @@ export async function fetchCurrentUser(): Promise<User> {
 }
 
 export async function fetchBandHistory() {
-  const { data } = await serverApi.get('/api/users/me/band-history')
+  const { data } = await http.get('/api/users/me/band-history')
   const entries = (data.data ?? []) as Array<{
     scores: { overall: number; listening: number; reading: number; writing: number; speaking: number }
     recordedAt: string
