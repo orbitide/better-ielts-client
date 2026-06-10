@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import {
   Leaf, Cpu, GraduationCap, Heart, Plane, Briefcase,
   Users, Palette, UtensilsCrossed, Trophy, Building2, Radio,
-  PhoneOff, Mic, MicOff, ChevronRight, RotateCcw, CheckCircle,
+  Mic, MicOff, ChevronRight, RotateCcw, CheckCircle,
   Star, Check,
   type LucideIcon,
 } from 'lucide-react'
@@ -15,23 +15,24 @@ import { Progress } from '@/components/ui/progress'
 import { ExamToolbar } from '@/components/exam/ExamToolbar'
 import { ExamResultsScreen } from '@/components/exam/ExamResultsScreen'
 import { examExitHrefs } from '@/lib/utils/exam-routes'
-import { callSelectionTopics, callPromptCards } from '@/lib/mock/call-topics'
-import type { CallPhase, CallPromptCard, CallSummary } from '@/lib/types/call'
+import { fetchCallTopics, submitCallReview } from '@/lib/api/calls'
+import {
+  ensureCallConnection, joinQueue, leaveQueue, nextTopic, endCall,
+  onMatchFound, onNoMatchFound, onTopicChanged, onPartnerLeft, onCallEnded,
+} from '@/lib/realtime/call-connection'
+import type {
+  CallPhase, CallTopic, CallSummary, PartnerInfoDto, CallSessionTopicEntry,
+  CallEndedPayload, PartnerLeftPayload,
+} from '@/lib/types/call'
 import { cn } from '@/lib/utils'
 
-const TOPIC_ICONS: Record<string, LucideIcon> = {
-  environment: Leaf,
-  technology: Cpu,
-  education: GraduationCap,
-  health: Heart,
-  travel: Plane,
-  work: Briefcase,
-  family: Users,
-  arts: Palette,
-  food: UtensilsCrossed,
-  sport: Trophy,
-  cities: Building2,
-  media: Radio,
+const ICON_MAP: Record<string, LucideIcon> = {
+  Leaf, Cpu, GraduationCap, Heart, Plane, Briefcase,
+  Users, Palette, UtensilsCrossed, Trophy, Building2, Radio,
+}
+
+function getTopicIcon(name?: string): LucideIcon {
+  return (name && ICON_MAP[name]) || Leaf
 }
 
 const NEGATIVE_FLAGS = [
@@ -84,12 +85,23 @@ function StarRating({
 
 export function CallShell() {
   const [phase, setPhase] = useState<CallPhase>('setup')
+
+  const [topics, setTopics] = useState<CallTopic[]>([])
+  const [topicsLoading, setTopicsLoading] = useState(true)
+  const [topicsError, setTopicsError] = useState<string | null>(null)
+
   const [selectedTopicIds, setSelectedTopicIds] = useState<Set<string>>(new Set())
   const [matchProgress, setMatchProgress] = useState(0)
+  const [noMatchMessage, setNoMatchMessage] = useState<string | null>(null)
   const [callSeconds, setCallSeconds] = useState(0)
   const [isMuted, setIsMuted] = useState(false)
-  const [promptIndex, setPromptIndex] = useState(0)
-  const [shuffledPrompts, setShuffledPrompts] = useState<CallPromptCard[]>([])
+
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [partner, setPartner] = useState<PartnerInfoDto | null>(null)
+  const [sessionTopics, setSessionTopics] = useState<CallSessionTopicEntry[]>([])
+  const [currentTopicIndex, setCurrentTopicIndex] = useState(0)
+  const [partnerLeftReason, setPartnerLeftReason] = useState<string | null>(null)
+
   const [summary, setSummary] = useState<CallSummary | null>(null)
 
   // Review state
@@ -99,14 +111,114 @@ export function CallShell() {
   const [reviewVocabulary, setReviewVocabulary] = useState<number | null>(null)
   const [reviewFlags, setReviewFlags] = useState<Set<string>>(new Set())
   const [reviewSubmitted, setReviewSubmitted] = useState(false)
+  const [reviewError, setReviewError] = useState<string | null>(null)
+  const [reviewSubmitting, setReviewSubmitting] = useState(false)
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Refs mirroring state, so the mount-only hub event subscriptions never see stale values
+  const phaseRef = useRef<CallPhase>(phase)
+  const sessionIdRef = useRef<string | null>(null)
+  const callSecondsRef = useRef(0)
+  const sessionTopicsRef = useRef<CallSessionTopicEntry[]>([])
+  const currentTopicIndexRef = useRef(0)
 
   const clearInterval_ = () => { if (intervalRef.current) clearInterval(intervalRef.current) }
   const clearTimeout_ = () => { if (timeoutRef.current) clearTimeout(timeoutRef.current) }
 
   useEffect(() => () => { clearInterval_(); clearTimeout_() }, [])
+  useEffect(() => { phaseRef.current = phase }, [phase])
+  useEffect(() => { sessionIdRef.current = sessionId }, [sessionId])
+  useEffect(() => { callSecondsRef.current = callSeconds }, [callSeconds])
+  useEffect(() => { sessionTopicsRef.current = sessionTopics }, [sessionTopics])
+  useEffect(() => { currentTopicIndexRef.current = currentTopicIndex }, [currentTopicIndex])
+
+  const loadTopics = useCallback(() => {
+    setTopicsLoading(true)
+    setTopicsError(null)
+    fetchCallTopics()
+      .then(setTopics)
+      .catch((err) => setTopicsError((err as Error).message ?? 'Failed to load topics'))
+      .finally(() => setTopicsLoading(false))
+  }, [])
+
+  useEffect(() => { loadTopics() }, [loadTopics])
+
+  function handleSessionEnd(args:
+    | { reason: 'callEnded'; payload: CallEndedPayload }
+    | { reason: 'partnerLeft'; payload: PartnerLeftPayload }
+  ) {
+    clearInterval_()
+    clearTimeout_()
+    if (args.reason === 'callEnded') {
+      setSummary({ durationSeconds: args.payload.durationSeconds, topicsDiscussed: args.payload.topicsDiscussed })
+    } else {
+      setSummary({
+        durationSeconds: callSecondsRef.current,
+        topicsDiscussed: sessionTopicsRef.current.slice(0, currentTopicIndexRef.current + 1).map((t) => t.label),
+      })
+      setPartnerLeftReason(args.payload.reason)
+    }
+    setPhase('review')
+  }
+
+  // Hub event subscriptions — registered once for the lifetime of this component
+  useEffect(() => {
+    const offMatchFound = onMatchFound((payload) => {
+      clearInterval_()
+      setSessionId(payload.sessionId)
+      setPartner(payload.partner)
+      setSessionTopics(payload.topics)
+      setCurrentTopicIndex(payload.currentTopicIndex)
+      setMatchProgress(100)
+      setPhase('connecting')
+      timeoutRef.current = setTimeout(() => {
+        setCallSeconds(0)
+        setPhase('active')
+        intervalRef.current = setInterval(() => setCallSeconds((s) => s + 1), 1000)
+      }, 800)
+    })
+
+    const offNoMatchFound = onNoMatchFound(() => {
+      clearInterval_()
+      clearTimeout_()
+      setNoMatchMessage('No partner found right now. Please try again.')
+      setPhase('setup')
+    })
+
+    const offTopicChanged = onTopicChanged((payload) => {
+      setCurrentTopicIndex(payload.currentTopicIndex)
+    })
+
+    const offPartnerLeft = onPartnerLeft((payload) => {
+      handleSessionEnd({ reason: 'partnerLeft', payload })
+    })
+
+    const offCallEnded = onCallEnded((payload) => {
+      handleSessionEnd({ reason: 'callEnded', payload })
+    })
+
+    return () => {
+      offMatchFound()
+      offNoMatchFound()
+      offTopicChanged()
+      offPartnerLeft()
+      offCallEnded()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Leave the queue / end an in-progress call if the user navigates away
+  useEffect(() => {
+    return () => {
+      if (phaseRef.current === 'matching') {
+        leaveQueue().catch(() => {})
+      } else if ((phaseRef.current === 'active' || phaseRef.current === 'connecting') && sessionIdRef.current) {
+        endCall(sessionIdRef.current).catch(() => {})
+      }
+    }
+  }, [])
 
   function toggleTopic(id: string) {
     setSelectedTopicIds((prev) => {
@@ -129,39 +241,54 @@ export function CallShell() {
   function startMatching() {
     setPhase('matching')
     setMatchProgress(0)
+    setNoMatchMessage(null)
     intervalRef.current = setInterval(() => {
       setMatchProgress((prev) => {
         if (prev >= 100) {
           clearInterval_()
-          setPhase('connecting')
-          timeoutRef.current = setTimeout(() => {
-            const shuffled = [...callPromptCards].sort(() => Math.random() - 0.5)
-            setShuffledPrompts(shuffled)
-            setPromptIndex(0)
-            setCallSeconds(0)
-            setPhase('active')
-            intervalRef.current = setInterval(() => setCallSeconds((s) => s + 1), 1000)
-          }, 800)
           return 100
         }
         return prev + 2.5
       })
     }, 75)
+
+    void (async () => {
+      try {
+        await ensureCallConnection()
+        await joinQueue(Array.from(selectedTopicIds))
+      } catch {
+        clearInterval_()
+        setMatchProgress(0)
+        setPhase('setup')
+        setNoMatchMessage('Failed to connect. Please try again.')
+      }
+    })()
   }
 
-  function endCall() {
-    clearInterval_()
-    clearTimeout_()
-    setSummary({
-      durationSeconds: callSeconds,
-      topicsDiscussed: shuffledPrompts.slice(0, promptIndex + 1).map((p) => p.topicLabel),
-    })
-    setPhase('review')
-  }
-
-  function submitReview() {
-    setReviewSubmitted(true)
-    setPhase('ended')
+  async function submitReview() {
+    if (!sessionId || reviewOverall === null) return
+    setReviewSubmitting(true)
+    setReviewError(null)
+    try {
+      await submitCallReview(sessionId, {
+        overallRating: reviewOverall,
+        fluencyRating: reviewFluency ?? undefined,
+        engagementRating: reviewEngagement ?? undefined,
+        vocabularyRating: reviewVocabulary ?? undefined,
+        flags: Array.from(reviewFlags),
+      })
+      setReviewSubmitted(true)
+      setPhase('ended')
+    } catch (err) {
+      if ((err as Error & { status?: number }).status === 409) {
+        setReviewSubmitted(true)
+        setPhase('ended')
+      } else {
+        setReviewError((err as Error).message ?? 'Failed to submit review. Please try again.')
+      }
+    } finally {
+      setReviewSubmitting(false)
+    }
   }
 
   function skipReview() {
@@ -173,10 +300,14 @@ export function CallShell() {
     setPhase('setup')
     setSelectedTopicIds(new Set())
     setMatchProgress(0)
+    setNoMatchMessage(null)
     setCallSeconds(0)
     setIsMuted(false)
-    setPromptIndex(0)
-    setShuffledPrompts([])
+    setSessionId(null)
+    setPartner(null)
+    setSessionTopics([])
+    setCurrentTopicIndex(0)
+    setPartnerLeftReason(null)
     setSummary(null)
     setReviewOverall(null)
     setReviewFluency(null)
@@ -184,9 +315,8 @@ export function CallShell() {
     setReviewVocabulary(null)
     setReviewFlags(new Set())
     setReviewSubmitted(false)
+    setReviewError(null)
   }
-
-  const currentPrompt = shuffledPrompts[promptIndex]
 
   // ── Setup ──────────────────────────────────────────────────────────────────
   if (phase === 'setup') {
@@ -206,45 +336,61 @@ export function CallShell() {
               </div>
 
               <div className="p-4">
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                  {callSelectionTopics.map((topic) => {
-                    const Icon = TOPIC_ICONS[topic.icon] ?? Leaf
-                    const isSelected = selectedTopicIds.has(topic.id)
-                    return (
-                      <button
-                        key={topic.id}
-                        type="button"
-                        onClick={() => toggleTopic(topic.id)}
-                        className={cn(
-                          'flex cursor-pointer flex-col items-center gap-1.5 rounded border p-3 text-center text-xs transition-colors',
-                          isSelected
-                            ? 'border-primary bg-primary/8 ring-1 ring-primary/20 dark:bg-primary/10'
-                            : 'border-black/10 bg-white hover:border-black/20 dark:border-white/10 dark:bg-[#161616] dark:hover:border-white/20',
-                        )}
-                      >
-                        <Icon className={cn('size-5', isSelected ? 'text-primary' : 'text-muted-foreground')} />
-                        <span className={cn('font-medium leading-tight', isSelected ? 'text-primary' : 'text-foreground')}>
-                          {topic.label}
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
+                {noMatchMessage && (
+                  <div className="mb-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-400">
+                    {noMatchMessage}
+                  </div>
+                )}
+
+                {topicsLoading && (
+                  <p className="py-6 text-center text-sm text-muted-foreground">Loading topics…</p>
+                )}
+
+                {!topicsLoading && topicsError && (
+                  <div className="py-6 text-center">
+                    <p className="text-sm text-destructive">{topicsError}</p>
+                    <Button variant="outline" size="sm" className="mt-3" onClick={loadTopics}>
+                      Retry
+                    </Button>
+                  </div>
+                )}
+
+                {!topicsLoading && !topicsError && (
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                    {topics.map((topic) => {
+                      const Icon = getTopicIcon(topic.icon)
+                      const isSelected = selectedTopicIds.has(topic.id)
+                      return (
+                        <button
+                          key={topic.id}
+                          type="button"
+                          onClick={() => toggleTopic(topic.id)}
+                          className={cn(
+                            'flex cursor-pointer flex-col items-center gap-1.5 rounded border p-3 text-center text-xs transition-colors',
+                            isSelected
+                              ? 'border-primary bg-primary/8 ring-1 ring-primary/20 dark:bg-primary/10'
+                              : 'border-black/10 bg-white hover:border-black/20 dark:border-white/10 dark:bg-[#161616] dark:hover:border-white/20',
+                          )}
+                        >
+                          <Icon className={cn('size-5', isSelected ? 'text-primary' : 'text-muted-foreground')} />
+                          <span className={cn('font-medium leading-tight', isSelected ? 'text-primary' : 'text-foreground')}>
+                            {topic.label}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
 
               <div className="border-t border-black/8 p-4 dark:border-white/8">
                 <Button
                   onClick={startMatching}
-                  disabled={selectedTopicIds.size === 0}
+                  disabled={topicsLoading || !!topicsError}
                   className="w-full rounded-md bg-[#2b2f36] text-white hover:bg-[#3a3f48] disabled:opacity-50"
                 >
                   Find a Partner
                 </Button>
-                {selectedTopicIds.size === 0 && (
-                  <p className="mt-2 text-center text-xs text-muted-foreground">
-                    Select at least one topic to continue
-                  </p>
-                )}
               </div>
             </div>
           </div>
@@ -255,7 +401,7 @@ export function CallShell() {
 
   // ── Matching ───────────────────────────────────────────────────────────────
   if (phase === 'matching') {
-    const selectedLabels = callSelectionTopics
+    const selectedLabels = topics
       .filter((t) => selectedTopicIds.has(t.id))
       .map((t) => t.label)
     return (
@@ -271,11 +417,13 @@ export function CallShell() {
             <p className="mt-1 text-sm text-muted-foreground">Matching you with someone who shares your interests…</p>
           </div>
           <Progress value={matchProgress} className="h-1.5 w-64" />
-          <div className="flex flex-wrap justify-center gap-1.5">
-            {selectedLabels.map((label) => (
-              <Badge key={label} variant="secondary">{label}</Badge>
-            ))}
-          </div>
+          {selectedLabels.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-1.5">
+              {selectedLabels.map((label) => (
+                <Badge key={label} variant="secondary">{label}</Badge>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     )
@@ -286,7 +434,7 @@ export function CallShell() {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-6 p-6 bg-[#f8f8f8] dark:bg-[#181818]">
         <div className="size-20 rounded-full bg-[#2b2f36] text-white flex items-center justify-center text-2xl font-bold">
-          AK
+          {partner ? getInitials(partner.name) : '??'}
         </div>
         <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
           <CheckCircle className="size-5" />
@@ -297,9 +445,11 @@ export function CallShell() {
   }
 
   // ── Active call ────────────────────────────────────────────────────────────
-  if (phase === 'active' && currentPrompt) {
-    const TopicIcon = TOPIC_ICONS[currentPrompt.topicId] ?? Leaf
+  const currentTopic = sessionTopics[currentTopicIndex]
+  if (phase === 'active' && currentTopic) {
+    const TopicIcon = getTopicIcon(currentTopic.icon)
     const userInitials = 'ME'
+    const partnerInitials = partner ? getInitials(partner.name) : '??'
 
     return (
       <div className="flex h-full flex-col">
@@ -307,7 +457,7 @@ export function CallShell() {
           module="Speaking Call"
           exitHref={examExitHrefs.call}
           exitLabel="End Call"
-          onExit={endCall}
+          onExit={() => { if (sessionId) void endCall(sessionId) }}
           center={
             <span className="font-mono text-sm tabular-nums">{formatCallTime(callSeconds)}</span>
           }
@@ -350,11 +500,11 @@ export function CallShell() {
             <div className="flex flex-col items-center gap-2">
               <div className="relative">
                 <div className="size-20 rounded-full bg-emerald-700 text-white flex items-center justify-center text-xl font-bold">
-                  AK
+                  {partnerInitials}
                 </div>
                 <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#181818]" />
               </div>
-              <span className="text-xs text-muted-foreground">Amira K.</span>
+              <span className="text-xs text-muted-foreground">{partner?.name ?? 'Partner'}</span>
             </div>
           </div>
 
@@ -364,18 +514,18 @@ export function CallShell() {
               <div className="mb-3 flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-sm font-semibold">
                   <TopicIcon className="size-4 text-muted-foreground" />
-                  {currentPrompt.topicLabel}
+                  {currentTopic.label}
                 </span>
                 <Badge variant="outline" className="text-xs">
-                  Topic {promptIndex + 1} of {shuffledPrompts.length}
+                  Topic {currentTopicIndex + 1} of {sessionTopics.length}
                 </Badge>
               </div>
 
               <ol className="space-y-2 text-sm text-foreground/80">
-                {currentPrompt.prompts.map((prompt, i) => (
+                {currentTopic.questions.map((question, i) => (
                   <li key={i} className="flex gap-2">
                     <span className="shrink-0 font-semibold text-muted-foreground">{i + 1}.</span>
-                    <span>{prompt}</span>
+                    <span>{question}</span>
                   </li>
                 ))}
               </ol>
@@ -385,7 +535,7 @@ export function CallShell() {
                   variant="outline"
                   size="sm"
                   className="gap-1.5"
-                  onClick={() => setPromptIndex((i) => (i + 1) % shuffledPrompts.length)}
+                  onClick={() => { if (sessionId) void nextTopic(sessionId) }}
                 >
                   Next Topic
                   <ChevronRight className="size-3.5" />
@@ -418,8 +568,16 @@ export function CallShell() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/50">
                   After Call
                 </p>
-                <p className="mt-0.5 text-sm font-medium text-white">Rate your speaking partner — Amira K.</p>
+                <p className="mt-0.5 text-sm font-medium text-white">
+                  Rate your speaking partner — {partner?.name ?? 'your partner'}
+                </p>
               </div>
+
+              {partnerLeftReason && (
+                <div className="mx-6 mt-4 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-400">
+                  Your partner disconnected from the call.
+                </div>
+              )}
 
               <div className="divide-y divide-black/8 dark:divide-white/8">
 
@@ -496,17 +654,21 @@ export function CallShell() {
 
               {/* Footer */}
               <div className="border-t border-black/8 px-6 py-4 dark:border-white/8">
+                {reviewError && (
+                  <p className="mb-2 text-center text-xs text-destructive">{reviewError}</p>
+                )}
                 <div className="flex gap-3">
                   <Button
                     onClick={submitReview}
-                    disabled={reviewOverall === null}
+                    disabled={reviewOverall === null || reviewSubmitting}
                     className="flex-1 rounded-md bg-[#2b2f36] text-white hover:bg-[#3a3f48] disabled:opacity-50"
                   >
-                    Submit Review
+                    {reviewSubmitting ? 'Submitting…' : 'Submit Review'}
                   </Button>
                   <Button
                     variant="ghost"
                     onClick={skipReview}
+                    disabled={reviewSubmitting}
                     className="rounded-md text-muted-foreground hover:text-foreground"
                   >
                     Skip

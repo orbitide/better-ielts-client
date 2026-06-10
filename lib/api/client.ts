@@ -9,7 +9,9 @@ clientApi.interceptors.response.use(
   (response) => response,
   (error) => {
     const message = error.response?.data?.message ?? error.message ?? 'Request failed'
-    return Promise.reject(new Error(message))
+    const e = new Error(message) as Error & { status?: number }
+    e.status = error.response?.status
+    return Promise.reject(e)
   }
 )
 
