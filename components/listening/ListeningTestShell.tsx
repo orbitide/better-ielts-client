@@ -21,6 +21,8 @@ import { ExamResultsScreen } from '@/components/exam/ExamResultsScreen'
 import { examExitHrefs } from '@/lib/utils/exam-routes'
 import Link from 'next/link'
 import { RotateCcw } from 'lucide-react'
+import { LayoutNodeRenderer } from './layout/LayoutNodeRenderer'
+import { getLayoutAnswerKeys } from '@/lib/utils/listening-layout'
 
 export function ListeningTestShell({ test }: { test: ListeningTest }) {
   const { startTest, submitTest, answers, setAnswer, resetTest, activeTestId, isSubmitted, _hasHydrated } = useTestStore()
@@ -37,6 +39,13 @@ export function ListeningTestShell({ test }: { test: ListeningTest }) {
   const currentSection = test.sections[sectionIdx]
 
   const allQuestions = test.sections.flatMap((s) => s.questions)
+  const allLayoutAnswerKeys = test.sections.flatMap((s) => getLayoutAnswerKeys(s.layout?.nodes))
+  const totalQuestions = allQuestions.length + allLayoutAnswerKeys.length
+  const currentSectionLayoutKeys = getLayoutAnswerKeys(currentSection.layout?.nodes)
+  const currentSectionQuestionNumbers = [
+    ...currentSection.questions.map((q) => q.questionNumber),
+    ...currentSectionLayoutKeys.map((k) => k.questionNumber),
+  ].sort((a, b) => a - b)
 
   const handleStart = () => {
     startTest(test.id, test.durationMinutes * 60)
@@ -58,12 +67,18 @@ export function ListeningTestShell({ test }: { test: ListeningTest }) {
   }, [sectionIdx])
 
   function getScore() {
-    const correct = allQuestions.filter((q) => {
+    const correctQuestions = allQuestions.filter((q) => {
       const a = answers[q.id]?.trim().toLowerCase()
       const c = q.correctAnswer.toLowerCase()
       return a === c
     }).length
-    const pct = correct / allQuestions.length
+    const correctLayout = allLayoutAnswerKeys.filter((k) => {
+      const a = answers[k.inputId]?.trim().toLowerCase()
+      const c = k.correctAnswer.toLowerCase()
+      return a === c
+    }).length
+    const correct = correctQuestions + correctLayout
+    const pct = correct / totalQuestions
     if (pct >= 0.90) return { score: correct, band: 9.0 }
     if (pct >= 0.80) return { score: correct, band: 8.0 }
     if (pct >= 0.70) return { score: correct, band: 7.5 }
@@ -80,7 +95,7 @@ export function ListeningTestShell({ test }: { test: ListeningTest }) {
       <ExamIntroScreen
         module="Listening"
         title={test.title}
-        meta={`${test.sections.length} sections · ${allQuestions.length} questions · ${test.durationMinutes} minutes`}
+        meta={`${test.sections.length} sections · ${totalQuestions} questions · ${test.durationMinutes} minutes`}
         instructions={[
           'You will hear each section once only.',
           'Write answers as you listen — do not wait until the end.',
@@ -107,7 +122,7 @@ export function ListeningTestShell({ test }: { test: ListeningTest }) {
         <div className="flex items-center justify-center gap-8 text-center">
           <div>
             <p className="text-3xl font-bold tabular-nums">
-              {score}/{allQuestions.length}
+              {score}/{totalQuestions}
             </p>
             <p className="text-sm text-muted-foreground">Correct</p>
           </div>
@@ -170,7 +185,7 @@ export function ListeningTestShell({ test }: { test: ListeningTest }) {
         <div className="mx-auto max-w-2xl space-y-6 p-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">Section {currentSection.sectionNumber}</h2>
-            <Badge variant="secondary">{currentSection.questions.length} questions</Badge>
+            <Badge variant="secondary">{currentSection.questions.length + currentSectionLayoutKeys.length} questions</Badge>
           </div>
 
           {/* Audio player */}
@@ -220,11 +235,14 @@ export function ListeningTestShell({ test }: { test: ListeningTest }) {
           {/* Questions */}
           <div className="space-y-4">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Questions {currentSection.questions[0]?.questionNumber}–{currentSection.questions[currentSection.questions.length - 1]?.questionNumber}
+              Questions {currentSectionQuestionNumbers[0]}–{currentSectionQuestionNumbers[currentSectionQuestionNumbers.length - 1]}
             </p>
             {currentSection.questions.map((q) => (
               <ListeningQuestionItem key={q.id} question={q} />
             ))}
+            {currentSection.layout?.nodes?.length ? (
+              <LayoutNodeRenderer nodes={currentSection.layout.nodes} />
+            ) : null}
           </div>
         </div>
       </ScrollArea>
