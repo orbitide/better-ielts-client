@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useOnboardingStore } from '@/lib/store/onboarding-store'
-import { saveOnboardingAction } from '@/app/actions/onboarding'
+import { saveOnboarding } from '@/lib/api/onboarding'
 import type { OnboardingData } from '@/lib/types/onboarding'
 
 const COUNTRIES = [
@@ -181,7 +181,7 @@ export function OnboardingFlow() {
   async function handleFinish() {
     setSaving(true)
     setSaveError(null)
-    const result = await saveOnboardingAction(data as OnboardingData)
+    const result = await saveOnboarding(data as OnboardingData)
     if (!result.ok) {
       setSaveError(result.error)
       setSaving(false)

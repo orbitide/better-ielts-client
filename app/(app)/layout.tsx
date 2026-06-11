@@ -1,10 +1,11 @@
+import { connection } from 'next/server'
 import { AppLayoutRouter } from '@/components/layout/AppLayoutRouter'
 import { AuthGate } from '@/components/layout/AuthGate'
 import { PresenceTracker } from '@/components/layout/PresenceTracker'
 
-export const dynamic = 'force-dynamic'
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  await connection()
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthGate>
       <PresenceTracker />

@@ -1,5 +1,3 @@
-'use server'
-
 import http from '@/lib/api/http'
 import type { OnboardingData } from '@/lib/types/onboarding'
 
@@ -20,7 +18,7 @@ type ApiOnboardingResponse = {
   message?: string
 }
 
-export async function saveOnboardingAction(
+export async function saveOnboarding(
   data: OnboardingData
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
@@ -31,7 +29,7 @@ export async function saveOnboardingAction(
   }
 }
 
-export async function fetchOnboardingProfileAction(): Promise<Partial<OnboardingData> | null> {
+export async function fetchOnboardingProfile(): Promise<Partial<OnboardingData> | null> {
   try {
     const { data } = await http.get<ApiOnboardingResponse>('/api/onboarding')
     return (data.data as Partial<OnboardingData> | null | undefined) ?? null

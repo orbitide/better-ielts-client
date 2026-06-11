@@ -10,11 +10,11 @@ import {
   logoutAction,
   refreshAction,
 } from '@/app/actions/auth'
-import { fetchOnboardingProfileAction } from '@/app/actions/onboarding'
+import { fetchOnboardingProfile } from '@/lib/api/onboarding'
 import { useOnboardingStore } from '@/lib/store/onboarding-store'
 
 async function syncOnboardingStatus() {
-  const profile = await fetchOnboardingProfileAction()
+  const profile = await fetchOnboardingProfile()
   useOnboardingStore.getState().setFromServer(profile)
 }
 
