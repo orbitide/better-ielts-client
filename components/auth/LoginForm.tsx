@@ -108,6 +108,17 @@ export function LoginForm() {
             {error && (
               <p className="text-sm text-destructive" role="alert">
                 {error}
+                {error === 'Email address is not verified.' && (
+                  <>
+                    {' '}
+                    <Link
+                      href={`/verify-email?email=${encodeURIComponent(email)}`}
+                      className="underline"
+                    >
+                      Resend verification email
+                    </Link>
+                  </>
+                )}
               </p>
             )}
 

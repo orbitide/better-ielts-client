@@ -25,7 +25,11 @@ type AuthState = {
   bootstrap: () => Promise<void>
   loginWithEmail: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>
   loginWithGoogle: (idToken: string) => Promise<{ ok: boolean; error?: string }>
-  register: (name: string, email: string, password: string) => Promise<{ ok: boolean; error?: string }>
+  register: (
+    name: string,
+    email: string,
+    password: string
+  ) => Promise<{ ok: boolean; error?: string; requiresVerification?: boolean; email?: string }>
   logout: () => Promise<void>
   refresh: () => Promise<boolean>
   setHasHydrated: (has: boolean) => void
@@ -64,6 +68,9 @@ export const useAuthStore = create<AuthState>()((set) => ({
   },
   register: async (name, email, password) => {
     const result = await registerAction(name, email, password)
+    if (result.ok && 'requiresVerification' in result) {
+      return { ok: true, requiresVerification: true, email: result.email }
+    }
     if (result.ok) {
       set({ user: result.user, isAuthenticated: true })
       await syncOnboardingStatus()

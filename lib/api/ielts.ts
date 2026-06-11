@@ -19,9 +19,28 @@ export async function fetchReadingTests(page = 1, pageSize = 50) {
   return (data.data?.items ?? []) as unknown[]
 }
 
+const READING_SECTIONS_PAGE_SIZE = 10 // ~3 sections per test, generous headroom
+const READING_QUESTIONS_PAGE_SIZE = 50 // ~13-14 questions per section, generous headroom
+
 export async function fetchReadingTest(id: string) {
-  const { data } = await http.get(`/api/ielts/reading/${id}`)
-  return data.data as unknown
+  const { data: testData } = await http.get(`/api/ielts/reading/${id}`)
+  const test = testData.data as Record<string, unknown>
+
+  const { data: sectionsData } = await http.get(`/api/ielts/reading/${id}/sections`, {
+    params: { page: 1, pageSize: READING_SECTIONS_PAGE_SIZE },
+  })
+  const sections = (sectionsData.data?.items ?? []) as Record<string, unknown>[]
+
+  const sectionsWithQuestions = await Promise.all(
+    sections.map(async (section) => {
+      const { data: questionsData } = await http.get(`/api/ielts/reading/sections/${section.id}/questions`, {
+        params: { page: 1, pageSize: READING_QUESTIONS_PAGE_SIZE },
+      })
+      return { ...section, questions: questionsData.data?.items ?? [] }
+    })
+  )
+
+  return { ...test, sections: sectionsWithQuestions } as unknown
 }
 
 // ─── Writing ─────────────────────────────────────────────────────────────────

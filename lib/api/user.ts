@@ -14,6 +14,7 @@ export async function fetchCurrentUser(): Promise<User> {
     totalStudyHours: u.totalStudyHours ?? 0,
     joinedAt: u.joinedAt ? new Date(u.joinedAt).toISOString().split('T')[0] : '',
     plan: u.plan ?? 'free',
+    isEmailVerified: u.isEmailVerified ?? false,
   }
 }
 

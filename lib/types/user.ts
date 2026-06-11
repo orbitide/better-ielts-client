@@ -26,4 +26,5 @@ export type User = {
   totalStudyHours: number
   joinedAt: string
   plan: 'free' | 'pro' | 'elite'
+  isEmailVerified: boolean
 }

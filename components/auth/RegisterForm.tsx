@@ -32,11 +32,13 @@ export function RegisterForm() {
     }
 
     setLoading(true)
-    const { ok, error: regError } = await register(name, email, password)
-    if (ok) {
+    const result = await register(name, email, password)
+    if (result.ok && result.requiresVerification) {
+      router.push(`/verify-email?email=${encodeURIComponent(result.email ?? email)}`)
+    } else if (result.ok) {
       router.push('/dashboard')
     } else {
-      setError(regError ?? 'Registration failed. Please try again.')
+      setError(result.error ?? 'Registration failed. Please try again.')
       setLoading(false)
     }
   }
