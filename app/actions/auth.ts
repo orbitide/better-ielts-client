@@ -118,6 +118,16 @@ export async function googleAuthAction(
   }
 }
 
+export async function meAction(): Promise<{ ok: true; user: User } | { ok: false }> {
+  try {
+    const { data } = await http.get<{ success: boolean; data?: ApiUser }>('/api/auth/me')
+    if (!data.success || !data.data) return { ok: false }
+    return { ok: true, user: mapApiUser(data.data) }
+  } catch {
+    return { ok: false }
+  }
+}
+
 export async function logoutAction(): Promise<void> {
   try {
     await http.post('/api/auth/logout')
