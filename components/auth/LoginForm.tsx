@@ -33,11 +33,16 @@ export function LoginForm() {
     setError(null)
     setLoading(true)
 
-    const { ok, error: loginError } = await loginWithEmail(email, password)
-    if (ok) {
-      router.push(redirect)
-    } else {
-      setError(loginError ?? 'Invalid email or password.')
+    try {
+      const { ok, error: loginError } = await loginWithEmail(email, password)
+      if (ok) {
+        router.push(redirect)
+      } else {
+        setError(loginError ?? 'Invalid email or password.')
+        setLoading(false)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
       setLoading(false)
     }
   }
@@ -67,7 +72,7 @@ export function LoginForm() {
           <AuthDivider />
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
+            <div className="space-y-1.5" suppressHydrationWarning>
               <label htmlFor="email" className="text-sm font-medium">
                 Email
               </label>
@@ -81,7 +86,7 @@ export function LoginForm() {
               />
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1.5" suppressHydrationWarning>
               <div className="flex items-center justify-between">
                 <label htmlFor="password" className="text-sm font-medium">
                   Password

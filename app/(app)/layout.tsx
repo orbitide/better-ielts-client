@@ -2,6 +2,8 @@ import { AppLayoutRouter } from '@/components/layout/AppLayoutRouter'
 import { AuthGate } from '@/components/layout/AuthGate'
 import { PresenceTracker } from '@/components/layout/PresenceTracker'
 
+export const dynamic = 'force-dynamic'
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthGate>

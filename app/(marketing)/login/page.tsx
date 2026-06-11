@@ -6,11 +6,9 @@ export const metadata = { title: 'Sign In' }
 
 export default function LoginPage() {
   return (
-    <>
+    <Suspense>
       <AuthRedirect />
-      <Suspense>
-        <LoginForm />
-      </Suspense>
-    </>
+      <LoginForm />
+    </Suspense>
   )
 }
