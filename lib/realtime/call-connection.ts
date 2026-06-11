@@ -5,6 +5,7 @@ import type {
   PartnerLeftPayload,
   CallEndedPayload,
   QueueCountChangedPayload,
+  CallSignalPayload,
 } from '@/lib/types/call'
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000').replace(/\/$/, '')
@@ -59,6 +60,11 @@ export async function endCall(sessionId: string): Promise<void> {
   await conn.invoke('EndCall', sessionId)
 }
 
+export async function sendSignal(payload: CallSignalPayload): Promise<void> {
+  const conn = await ensureCallConnection()
+  await conn.invoke('SendSignal', payload)
+}
+
 // ─── Server → client event subscriptions ────────────────────────────────────
 
 export function onMatchFound(handler: (payload: MatchFoundPayload) => void) {
@@ -95,4 +101,10 @@ export function onQueueCountChanged(handler: (payload: QueueCountChangedPayload)
   const conn = getConnection()
   conn.on('QueueCountChanged', handler)
   return () => conn.off('QueueCountChanged', handler)
+}
+
+export function onReceiveSignal(handler: (payload: CallSignalPayload) => void) {
+  const conn = getConnection()
+  conn.on('ReceiveSignal', handler)
+  return () => conn.off('ReceiveSignal', handler)
 }

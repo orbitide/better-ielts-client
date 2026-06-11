@@ -32,6 +32,7 @@ export type MatchFoundPayload = {
   partner: PartnerInfoDto
   topics: CallSessionTopicEntry[]
   currentTopicIndex: number
+  isInitiator: boolean
 }
 
 export type TopicChangedPayload = {
@@ -53,6 +54,13 @@ export type CallEndedPayload = {
 
 export type QueueCountChangedPayload = {
   count: number
+}
+
+// ─── SignalR: WebRTC signaling relay ────────────────────────────────────────
+export type CallSignalPayload = {
+  sessionId: string
+  type: 'offer' | 'answer' | 'ice-candidate'
+  data: string
 }
 
 export type CallSummary = {

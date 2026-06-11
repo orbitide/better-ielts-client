@@ -10,6 +10,13 @@ import {
   logoutAction,
   refreshAction,
 } from '@/app/actions/auth'
+import { fetchOnboardingProfileAction } from '@/app/actions/onboarding'
+import { useOnboardingStore } from '@/lib/store/onboarding-store'
+
+async function syncOnboardingStatus() {
+  const profile = await fetchOnboardingProfileAction()
+  useOnboardingStore.getState().setFromServer(profile)
+}
 
 type AuthState = {
   user: User | null
@@ -33,6 +40,7 @@ export const useAuthStore = create<AuthState>()(
         const result = await loginAction(email, password)
         if (result.ok) {
           set({ user: result.user, isAuthenticated: true })
+          await syncOnboardingStatus()
           return { ok: true }
         }
         return { ok: false, error: result.error }
@@ -41,6 +49,7 @@ export const useAuthStore = create<AuthState>()(
         const result = await googleAuthAction(idToken)
         if (result.ok) {
           set({ user: result.user, isAuthenticated: true })
+          await syncOnboardingStatus()
           return { ok: true }
         }
         return { ok: false, error: result.error }
@@ -49,6 +58,7 @@ export const useAuthStore = create<AuthState>()(
         const result = await registerAction(name, email, password)
         if (result.ok) {
           set({ user: result.user, isAuthenticated: true })
+          await syncOnboardingStatus()
           return { ok: true }
         }
         return { ok: false, error: result.error }
@@ -56,6 +66,7 @@ export const useAuthStore = create<AuthState>()(
       logout: async () => {
         await logoutAction()
         set({ user: null, isAuthenticated: false })
+        useOnboardingStore.getState().reset()
       },
       refresh: async () => {
         const ok = await refreshAction()

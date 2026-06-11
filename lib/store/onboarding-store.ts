@@ -11,6 +11,7 @@ type OnboardingState = {
   setField: <K extends keyof OnboardingData>(key: K, value: OnboardingData[K]) => void
   complete: () => void
   reset: () => void
+  setFromServer: (profile: Partial<OnboardingData> | null) => void
   setHasHydrated: (has: boolean) => void
 }
 
@@ -24,6 +25,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         set((state) => ({ data: { ...state.data, [key]: value } })),
       complete: () => set({ completed: true }),
       reset: () => set({ completed: false, data: {} }),
+      setFromServer: (profile) => set({ completed: profile !== null, data: profile ?? {} }),
       setHasHydrated: (has) => set({ _hasHydrated: has }),
     }),
     {

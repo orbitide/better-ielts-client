@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useOnboardingStore } from '@/lib/store/onboarding-store'
+import { saveOnboardingAction } from '@/app/actions/onboarding'
 import type { OnboardingData } from '@/lib/types/onboarding'
 
 const COUNTRIES = [
@@ -138,6 +139,8 @@ export function OnboardingFlow() {
   const { completed, data, setField, complete } = useOnboardingStore()
   const onboardingHydrated = useOnboardingStore((s) => s._hasHydrated)
   const [step, setStep] = useState(0)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     if (onboardingHydrated && completed) router.replace('/dashboard')
@@ -175,7 +178,15 @@ export function OnboardingFlow() {
     }
   }
 
-  function handleFinish() {
+  async function handleFinish() {
+    setSaving(true)
+    setSaveError(null)
+    const result = await saveOnboardingAction(data as OnboardingData)
+    if (!result.ok) {
+      setSaveError(result.error)
+      setSaving(false)
+      return
+    }
     complete()
     router.push('/dashboard')
   }
@@ -462,12 +473,19 @@ export function OnboardingFlow() {
                 ))}
               </div>
 
+              {saveError && (
+                <p className="mt-4 text-sm text-destructive" role="alert">
+                  {saveError}
+                </p>
+              )}
+
               <div className="mt-6 flex gap-3">
-                <Button variant="outline" onClick={goBack} className="gap-1.5">
+                <Button variant="outline" onClick={goBack} disabled={saving} className="gap-1.5">
                   <ArrowLeft className="h-4 w-4" /> Back
                 </Button>
-                <Button onClick={handleFinish} className="flex-1 gap-1.5">
-                  Go to Dashboard <ArrowRight className="h-4 w-4" />
+                <Button onClick={handleFinish} disabled={saving} className="flex-1 gap-1.5">
+                  {saving ? 'Saving…' : 'Go to Dashboard'}
+                  {!saving && <ArrowRight className="h-4 w-4" />}
                 </Button>
               </div>
             </div>

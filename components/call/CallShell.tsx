@@ -17,12 +17,14 @@ import { ExamResultsScreen } from '@/components/exam/ExamResultsScreen'
 import { examExitHrefs } from '@/lib/utils/exam-routes'
 import { fetchCallTopics, submitCallReview } from '@/lib/api/calls'
 import {
-  ensureCallConnection, joinQueue, leaveQueue, nextTopic, endCall,
-  onMatchFound, onNoMatchFound, onTopicChanged, onPartnerLeft, onCallEnded, onQueueCountChanged,
+  ensureCallConnection, joinQueue, leaveQueue, nextTopic, endCall, sendSignal,
+  onMatchFound, onNoMatchFound, onTopicChanged, onPartnerLeft, onCallEnded, onQueueCountChanged, onReceiveSignal,
 } from '@/lib/realtime/call-connection'
+import { getLocalAudioStream, createCallPeerConnection, PendingIceQueue } from '@/lib/webrtc/call-peer'
+import { startAudioLevelMeter } from '@/lib/webrtc/audio-level'
 import type {
   CallPhase, CallTopic, CallSummary, PartnerInfoDto, CallSessionTopicEntry,
-  CallEndedPayload, PartnerLeftPayload,
+  CallEndedPayload, PartnerLeftPayload, CallSignalPayload,
 } from '@/lib/types/call'
 import { cn } from '@/lib/utils'
 
@@ -96,6 +98,8 @@ export function CallShell() {
   const [queueCount, setQueueCount] = useState<number | null>(null)
   const [callSeconds, setCallSeconds] = useState(0)
   const [isMuted, setIsMuted] = useState(false)
+  const [micError, setMicError] = useState<string | null>(null)
+  const [audioLevel, setAudioLevel] = useState(0)
 
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [partner, setPartner] = useState<PartnerInfoDto | null>(null)
@@ -125,6 +129,14 @@ export function CallShell() {
   const sessionTopicsRef = useRef<CallSessionTopicEntry[]>([])
   const currentTopicIndexRef = useRef(0)
 
+  // WebRTC state
+  const peerRef = useRef<RTCPeerConnection | null>(null)
+  const localStreamRef = useRef<MediaStream | null>(null)
+  const remoteAudioRef = useRef<HTMLAudioElement | null>(null)
+  const iceQueueRef = useRef(new PendingIceQueue())
+  const isInitiatorRef = useRef(false)
+  const audioLevelCleanupRef = useRef<(() => void) | null>(null)
+
   const clearInterval_ = () => { if (intervalRef.current) clearInterval(intervalRef.current) }
   const clearTimeout_ = () => { if (timeoutRef.current) clearTimeout(timeoutRef.current) }
 
@@ -134,6 +146,97 @@ export function CallShell() {
   useEffect(() => { callSecondsRef.current = callSeconds }, [callSeconds])
   useEffect(() => { sessionTopicsRef.current = sessionTopics }, [sessionTopics])
   useEffect(() => { currentTopicIndexRef.current = currentTopicIndex }, [currentTopicIndex])
+
+  function cleanupCallMedia() {
+    audioLevelCleanupRef.current?.()
+    audioLevelCleanupRef.current = null
+    peerRef.current?.close()
+    peerRef.current = null
+    localStreamRef.current?.getTracks().forEach((t) => t.stop())
+    localStreamRef.current = null
+    if (remoteAudioRef.current) remoteAudioRef.current.srcObject = null
+    iceQueueRef.current = new PendingIceQueue()
+    setAudioLevel(0)
+    setMicError(null)
+  }
+
+  function rebuildPeerConnection(sessionId: string) {
+    peerRef.current?.close()
+    iceQueueRef.current = new PendingIceQueue()
+    const pc = createCallPeerConnection(localStreamRef.current, {
+      onIceCandidate: (candidate) => {
+        void sendSignal({ sessionId, type: 'ice-candidate', data: JSON.stringify(candidate) })
+      },
+      onRemoteStream: (stream) => {
+        if (remoteAudioRef.current) remoteAudioRef.current.srcObject = stream
+      },
+    })
+    peerRef.current = pc
+    return pc
+  }
+
+  async function sendOffer(sessionId: string) {
+    const pc = rebuildPeerConnection(sessionId)
+    const offer = await pc.createOffer()
+    await pc.setLocalDescription(offer)
+    void sendSignal({ sessionId, type: 'offer', data: JSON.stringify(offer) })
+  }
+
+  async function setupCall(sessionId: string, initiator: boolean) {
+    isInitiatorRef.current = initiator
+    try {
+      const stream = await getLocalAudioStream()
+      localStreamRef.current = stream
+      setMicError(null)
+      audioLevelCleanupRef.current = startAudioLevelMeter(stream, setAudioLevel)
+    } catch {
+      setMicError('Microphone access is required to talk. Allow microphone access and retry.')
+    }
+
+    if (initiator) await sendOffer(sessionId)
+  }
+
+  async function retryMicrophone() {
+    const sessionId = sessionIdRef.current
+    if (!sessionId) return
+    try {
+      const stream = await getLocalAudioStream()
+      localStreamRef.current = stream
+      setMicError(null)
+      audioLevelCleanupRef.current = startAudioLevelMeter(stream, setAudioLevel)
+      await sendOffer(sessionId)
+    } catch {
+      setMicError('Microphone access is still blocked. Check your browser permissions.')
+    }
+  }
+
+  async function handleCallSignal(payload: CallSignalPayload) {
+    if (payload.type === 'offer') {
+      const pc = rebuildPeerConnection(payload.sessionId)
+      await pc.setRemoteDescription(JSON.parse(payload.data))
+      iceQueueRef.current.flush(pc)
+      const answer = await pc.createAnswer()
+      await pc.setLocalDescription(answer)
+      void sendSignal({ sessionId: payload.sessionId, type: 'answer', data: JSON.stringify(answer) })
+    } else if (payload.type === 'answer') {
+      const pc = peerRef.current
+      if (!pc) return
+      await pc.setRemoteDescription(JSON.parse(payload.data))
+      iceQueueRef.current.flush(pc)
+    } else if (payload.type === 'ice-candidate') {
+      const pc = peerRef.current
+      if (!pc) return
+      iceQueueRef.current.add(pc, JSON.parse(payload.data))
+    }
+  }
+
+  function toggleMute() {
+    setIsMuted((m) => {
+      const next = !m
+      localStreamRef.current?.getAudioTracks().forEach((t) => { t.enabled = !next })
+      return next
+    })
+  }
 
   const loadTopics = useCallback(() => {
     setTopicsLoading(true)
@@ -152,6 +255,7 @@ export function CallShell() {
   ) {
     clearInterval_()
     clearTimeout_()
+    cleanupCallMedia()
     if (args.reason === 'callEnded') {
       setSummary({ durationSeconds: args.payload.durationSeconds, topicsDiscussed: args.payload.topicsDiscussed })
     } else {
@@ -177,6 +281,7 @@ export function CallShell() {
       setCurrentTopicIndex(payload.currentTopicIndex)
       setMatchProgress(100)
       setPhase('connecting')
+      void setupCall(payload.sessionId, payload.isInitiator)
       timeoutRef.current = setTimeout(() => {
         setCallSeconds(0)
         setPhase('active')
@@ -207,6 +312,11 @@ export function CallShell() {
       setQueueCount(payload.count)
     })
 
+    const offReceiveSignal = onReceiveSignal((payload) => {
+      if (payload.sessionId !== sessionIdRef.current) return
+      void handleCallSignal(payload)
+    })
+
     return () => {
       offMatchFound()
       offNoMatchFound()
@@ -214,6 +324,7 @@ export function CallShell() {
       offPartnerLeft()
       offCallEnded()
       offQueueCountChanged()
+      offReceiveSignal()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -225,6 +336,7 @@ export function CallShell() {
         leaveQueue().catch(() => {})
       } else if ((phaseRef.current === 'active' || phaseRef.current === 'connecting') && sessionIdRef.current) {
         endCall(sessionIdRef.current).catch(() => {})
+        cleanupCallMedia()
       }
     }
   }, [])
@@ -306,6 +418,7 @@ export function CallShell() {
   }
 
   function resetToSetup() {
+    cleanupCallMedia()
     setPhase('setup')
     setSelectedTopicIds(new Set())
     setMatchProgress(0)
@@ -488,7 +601,7 @@ export function CallShell() {
           trailing={
             <button
               type="button"
-              onClick={() => setIsMuted((m) => !m)}
+              onClick={toggleMute}
               aria-label={isMuted ? 'Unmute' : 'Mute'}
               className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-white/70 transition-colors hover:bg-white/10 hover:text-white"
             >
@@ -497,7 +610,18 @@ export function CallShell() {
           }
         />
 
+        <audio ref={remoteAudioRef} autoPlay playsInline className="hidden" />
+
         <div className="flex flex-1 flex-col items-center justify-between gap-6 overflow-hidden p-6 bg-[#f8f8f8] dark:bg-[#181818]">
+          {micError && (
+            <div className="flex w-full max-w-xl shrink-0 items-center justify-between gap-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-400">
+              <span>{micError}</span>
+              <Button variant="outline" size="sm" className="h-7 shrink-0 text-xs" onClick={() => void retryMicrophone()}>
+                Retry
+              </Button>
+            </div>
+          )}
+
           {/* Avatars */}
           <div className="flex flex-1 items-center justify-center gap-12 sm:gap-20">
             <div className="flex flex-col items-center gap-2">
@@ -511,11 +635,9 @@ export function CallShell() {
               {Array.from({ length: 8 }).map((_, i) => (
                 <div
                   key={i}
-                  className="w-1.5 rounded-full bg-[#2b2f36]/40 dark:bg-white/30"
+                  className="w-1.5 rounded-full bg-[#2b2f36]/40 dark:bg-white/30 transition-[height] duration-100"
                   style={{
-                    height: `${30 + Math.random() * 50}%`,
-                    animation: `pulse ${0.6 + (i % 4) * 0.15}s ease-in-out infinite`,
-                    animationDelay: `${i * 0.08}s`,
+                    height: `${Math.min(100, 20 + audioLevel * 100 * (0.6 + (i % 4) * 0.15))}%`,
                   }}
                 />
               ))}
