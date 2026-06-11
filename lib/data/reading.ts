@@ -1,10 +1,10 @@
 import { cache } from 'react'
 import { fetchReadingTests, fetchReadingTest } from '@/lib/api/ielts'
-import type { ReadingTest } from '@/lib/types/reading'
+import type { ReadingTest, ReadingTestSummary } from '@/lib/types/reading'
 
-export const getAllReadingTests = cache(async (): Promise<ReadingTest[]> => {
+export const getAllReadingTests = cache(async (): Promise<ReadingTestSummary[]> => {
   try {
-    return (await fetchReadingTests()) as ReadingTest[]
+    return (await fetchReadingTests()) as ReadingTestSummary[]
   } catch {
     return []
   }

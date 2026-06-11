@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { ArrowRight, CheckCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { OnlineUsersBadge } from './OnlineUsersBadge'
 
 const useCases = [
   'UK / Canada / Australia visa',
@@ -29,9 +30,12 @@ export function HeroSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left — copy */}
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border bg-muted/60 px-3 py-1.5 text-xs font-medium text-muted-foreground mb-6">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              IELTS Academic & General Training
+            <div className="flex flex-wrap items-center gap-2 mb-6">
+              <div className="inline-flex items-center gap-2 rounded-full border bg-muted/60 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                IELTS Academic & General Training
+              </div>
+              <OnlineUsersBadge />
             </div>
 
             <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl leading-[1.1] mb-5">

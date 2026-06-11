@@ -18,7 +18,7 @@ import { examExitHrefs } from '@/lib/utils/exam-routes'
 import { fetchCallTopics, submitCallReview } from '@/lib/api/calls'
 import {
   ensureCallConnection, joinQueue, leaveQueue, nextTopic, endCall,
-  onMatchFound, onNoMatchFound, onTopicChanged, onPartnerLeft, onCallEnded,
+  onMatchFound, onNoMatchFound, onTopicChanged, onPartnerLeft, onCallEnded, onQueueCountChanged,
 } from '@/lib/realtime/call-connection'
 import type {
   CallPhase, CallTopic, CallSummary, PartnerInfoDto, CallSessionTopicEntry,
@@ -93,6 +93,7 @@ export function CallShell() {
   const [selectedTopicIds, setSelectedTopicIds] = useState<Set<string>>(new Set())
   const [matchProgress, setMatchProgress] = useState(0)
   const [noMatchMessage, setNoMatchMessage] = useState<string | null>(null)
+  const [queueCount, setQueueCount] = useState<number | null>(null)
   const [callSeconds, setCallSeconds] = useState(0)
   const [isMuted, setIsMuted] = useState(false)
 
@@ -165,6 +166,9 @@ export function CallShell() {
 
   // Hub event subscriptions — registered once for the lifetime of this component
   useEffect(() => {
+    // Connect early so the queue count is live even before the user starts matching
+    void ensureCallConnection().catch(() => {})
+
     const offMatchFound = onMatchFound((payload) => {
       clearInterval_()
       setSessionId(payload.sessionId)
@@ -199,12 +203,17 @@ export function CallShell() {
       handleSessionEnd({ reason: 'callEnded', payload })
     })
 
+    const offQueueCountChanged = onQueueCountChanged((payload) => {
+      setQueueCount(payload.count)
+    })
+
     return () => {
       offMatchFound()
       offNoMatchFound()
       offTopicChanged()
       offPartnerLeft()
       offCallEnded()
+      offQueueCountChanged()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -327,12 +336,22 @@ export function CallShell() {
           <div className="w-full max-w-lg">
             <div className="overflow-hidden rounded border border-black/10 bg-[#f8f8f8] shadow-sm dark:border-white/10 dark:bg-[#1c1c1c]">
               <div className="border-b border-black/8 bg-[#2b2f36] px-6 py-4 dark:border-white/8">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/50">
-                  Live Speaking Practice
-                </p>
-                <p className="mt-0.5 text-sm font-medium text-white">
-                  Choose topics you'd like to discuss
-                </p>
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/50">
+                      Live Speaking Practice
+                    </p>
+                    <p className="mt-0.5 text-sm font-medium text-white">
+                      Choose topics you'd like to discuss
+                    </p>
+                  </div>
+                  {!!queueCount && (
+                    <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-xs text-white/80">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      {queueCount} waiting
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="p-4">
@@ -417,6 +436,11 @@ export function CallShell() {
             <p className="mt-1 text-sm text-muted-foreground">Matching you with someone who shares your interests…</p>
           </div>
           <Progress value={matchProgress} className="h-1.5 w-64" />
+          {queueCount !== null && (
+            <p className="text-xs text-muted-foreground">
+              {queueCount} {queueCount === 1 ? 'person' : 'people'} in the queue
+            </p>
+          )}
           {selectedLabels.length > 0 && (
             <div className="flex flex-wrap justify-center gap-1.5">
               {selectedLabels.map((label) => (

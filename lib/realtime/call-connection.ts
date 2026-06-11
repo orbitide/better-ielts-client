@@ -4,6 +4,7 @@ import type {
   TopicChangedPayload,
   PartnerLeftPayload,
   CallEndedPayload,
+  QueueCountChangedPayload,
 } from '@/lib/types/call'
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000').replace(/\/$/, '')
@@ -88,4 +89,10 @@ export function onCallEnded(handler: (payload: CallEndedPayload) => void) {
   const conn = getConnection()
   conn.on('CallEnded', handler)
   return () => conn.off('CallEnded', handler)
+}
+
+export function onQueueCountChanged(handler: (payload: QueueCountChangedPayload) => void) {
+  const conn = getConnection()
+  conn.on('QueueCountChanged', handler)
+  return () => conn.off('QueueCountChanged', handler)
 }

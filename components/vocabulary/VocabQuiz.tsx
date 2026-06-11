@@ -39,6 +39,14 @@ export function VocabQuiz({ words }: { words: VocabWord[] }) {
 
   const current = questions[qIdx]
 
+  if (!current) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-6 text-center text-sm text-muted-foreground">
+        No words available for a quiz with this filter.
+      </div>
+    )
+  }
+
   const handleSelect = (optIdx: number) => {
     if (selected !== null) return
     setSelected(optIdx)

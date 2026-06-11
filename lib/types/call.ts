@@ -51,6 +51,10 @@ export type CallEndedPayload = {
   endedBy: 'self' | 'partner'
 }
 
+export type QueueCountChangedPayload = {
+  count: number
+}
+
 export type CallSummary = {
   durationSeconds: number
   topicsDiscussed: string[]

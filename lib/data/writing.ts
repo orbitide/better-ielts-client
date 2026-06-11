@@ -1,10 +1,10 @@
 import { cache } from 'react'
 import { fetchWritingTasks, fetchWritingTask } from '@/lib/api/ielts'
-import type { WritingTask } from '@/lib/types/writing'
+import type { WritingTask, WritingTaskSummary } from '@/lib/types/writing'
 
-export const getAllWritingTasks = cache(async (): Promise<WritingTask[]> => {
+export const getAllWritingTasks = cache(async (): Promise<WritingTaskSummary[]> => {
   try {
-    return (await fetchWritingTasks()) as WritingTask[]
+    return (await fetchWritingTasks()) as WritingTaskSummary[]
   } catch {
     return []
   }

@@ -3,6 +3,7 @@ import { getStudyPlan } from '@/lib/data/study-plan'
 import { BandScoreRadar } from '@/components/charts/BandScoreRadar'
 import { ProgressOverTime } from '@/components/charts/ProgressOverTime'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { OnlineUsersCard } from '@/components/dashboard/OnlineUsersCard'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { buttonVariants } from '@/components/ui/button-variants'
@@ -124,7 +125,7 @@ export default async function DashboardPage() {
       </PageHeader>
 
       {/* Top stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground mb-1">Overall Band</p>
@@ -160,6 +161,7 @@ export default async function DashboardPage() {
             <Progress value={totalToday > 0 ? (completedToday / totalToday) * 100 : 0} className="mt-2 h-1.5" />
           </CardContent>
         </Card>
+        <OnlineUsersCard />
       </div>
 
       {/* Charts row */}

@@ -1,0 +1,28 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { ensurePresenceConnection, onOnlineCountChanged } from '@/lib/realtime/presence-connection'
+
+export function OnlineUsersBadge() {
+  const [count, setCount] = useState<number | null>(null)
+
+  useEffect(() => {
+    const unsubscribe = onOnlineCountChanged(setCount)
+    ensurePresenceConnection().catch(() => {})
+    return () => {
+      unsubscribe()
+    }
+  }, [])
+
+  if (count === null) return null
+
+  return (
+    <div className="inline-flex items-center gap-2 rounded-full border bg-muted/60 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+      <span className="relative flex h-1.5 w-1.5">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+      </span>
+      {count} {count === 1 ? 'person' : 'people'} studying right now
+    </div>
+  )
+}

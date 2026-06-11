@@ -26,6 +26,14 @@ export type ListeningTest = {
   sections: ListeningSection[]
 }
 
+export type ListeningTestSummary = {
+  id: string
+  title: string
+  durationMinutes: number
+  sectionCount: number
+  questionCount: number
+}
+
 // ─── Listening structured layout types (Beta, additive) ──────────────────────
 // A section may have BOTH `questions` and `layout`; both are graded.
 // `inputId` is globally unique across the test, conventionally `q${questionNumber}`.

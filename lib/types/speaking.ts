@@ -12,3 +12,10 @@ export type SpeakingSession = {
   title: string
   parts: SpeakingPart[]
 }
+
+export type SpeakingSessionSummary = {
+  id: string
+  title: string
+  topic: string
+  partCount: number
+}

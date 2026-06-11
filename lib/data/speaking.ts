@@ -1,10 +1,10 @@
 import { cache } from 'react'
 import { fetchSpeakingSessions, fetchSpeakingSession } from '@/lib/api/ielts'
-import type { SpeakingSession } from '@/lib/types/speaking'
+import type { SpeakingSession, SpeakingSessionSummary } from '@/lib/types/speaking'
 
-export const getAllSpeakingSessions = cache(async (): Promise<SpeakingSession[]> => {
+export const getAllSpeakingSessions = cache(async (): Promise<SpeakingSessionSummary[]> => {
   try {
-    return (await fetchSpeakingSessions()) as SpeakingSession[]
+    return (await fetchSpeakingSessions()) as SpeakingSessionSummary[]
   } catch {
     return []
   }

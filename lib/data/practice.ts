@@ -5,7 +5,18 @@ import { getAllReadingTests } from '@/lib/data/reading'
 import { getAllListeningTests } from '@/lib/data/listening'
 import { getAllWritingTasks } from '@/lib/data/writing'
 import { getAllSpeakingSessions } from '@/lib/data/speaking'
-import type { BandScore } from '@/lib/types/user'
+import type { BandScore, User } from '@/lib/types/user'
+
+const GUEST_BAND: BandScore = { overall: 5, listening: 5, reading: 5, writing: 5, speaking: 5 }
+const GUEST_TARGET_BAND = 7
+
+const getCurrentUserOrNull = cache(async (): Promise<User | null> => {
+  try {
+    return await getCurrentUser()
+  } catch {
+    return null
+  }
+})
 
 export type PracticeSkill = 'reading' | 'listening' | 'writing' | 'speaking'
 
@@ -93,7 +104,7 @@ export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> 
         title: t.title,
         href: `/reading/${t.id}`,
         duration: `${t.durationMinutes} min`,
-        meta: `${t.sections.length} passages · ${t.sections.reduce((n, s) => n + s.questions.length, 0)} questions`,
+        meta: `${t.passageCount} passages · ${t.questionCount} questions`,
       })),
     },
     {
@@ -109,7 +120,7 @@ export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> 
         title: t.title,
         href: `/listening/${t.id}`,
         duration: `${t.durationMinutes} min`,
-        meta: `${t.sections.length} sections · 40 questions`,
+        meta: `${t.sectionCount} sections · ${t.questionCount} questions`,
       })),
     },
     {
@@ -141,7 +152,7 @@ export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> 
         title: s.title,
         href: `/speaking/${s.id}`,
         duration: '11–14 min',
-        meta: `${s.parts.length} parts`,
+        meta: `${s.partCount} parts`,
       })),
     },
   ]
@@ -154,7 +165,7 @@ export const getSkillPracticeGroup = cache(async (skill: PracticeSkill): Promise
 
 export const getSkillPracticeRecommendation = cache(async (skill: PracticeSkill): Promise<PracticeRecommendation> => {
   const [user, plan, group] = await Promise.all([
-    getCurrentUser(),
+    getCurrentUserOrNull(),
     getStudyPlan(),
     getSkillPracticeGroup(skill),
   ])
@@ -181,14 +192,16 @@ export const getSkillPracticeRecommendation = cache(async (skill: PracticeSkill)
     }
   }
 
-  const bandGap = user.targetBand - user.currentBand[skill]
+  const targetBand = user?.targetBand ?? GUEST_TARGET_BAND
+  const currentBand = user?.currentBand[skill] ?? GUEST_BAND[skill]
+  const bandGap = targetBand - currentBand
   if (bandGap > 0 && group.tests.length > 0) {
     const recommendedTest = group.tests[0]
     return {
       skill,
       label: skillLabels[skill],
       title: recommendedTest.title,
-      description: `Your ${skill} band is ${user.currentBand[skill]} — practise here to reach your ${user.targetBand} target.`,
+      description: `Your ${skill} band is ${currentBand} — practise here to reach your ${targetBand} target.`,
       reason: bandGap >= 0.5 ? 'Focus area for your target band' : 'Keep building momentum',
       href: recommendedTest.href,
       duration: recommendedTest.duration,
@@ -222,7 +235,7 @@ export const getSkillPracticeRecommendation = cache(async (skill: PracticeSkill)
 
 export const getPracticeRecommendation = cache(async (): Promise<PracticeRecommendation> => {
   const [user, plan, catalog] = await Promise.all([
-    getCurrentUser(),
+    getCurrentUserOrNull(),
     getStudyPlan(),
     getPracticeCatalog(),
   ])
@@ -248,10 +261,12 @@ export const getPracticeRecommendation = cache(async (): Promise<PracticeRecomme
     }
   }
 
-  const weakest = findWeakestSkill(user.currentBand, user.targetBand)
+  const currentBand = user?.currentBand ?? GUEST_BAND
+  const targetBand = user?.targetBand ?? GUEST_TARGET_BAND
+  const weakest = findWeakestSkill(currentBand, targetBand)
   const group = catalog.find((g) => g.skill === weakest)!
   const recommendedTest = group.tests[0]
-  const bandGap = user.targetBand - user.currentBand[weakest]
+  const bandGap = targetBand - currentBand[weakest]
 
   if (!recommendedTest) {
     return {
@@ -270,7 +285,7 @@ export const getPracticeRecommendation = cache(async (): Promise<PracticeRecomme
     skill: weakest,
     label: skillLabels[weakest],
     title: recommendedTest.title,
-    description: `Focus here to close your ${bandGap.toFixed(1)}-band gap toward your ${user.targetBand} target.`,
+    description: `Focus here to close your ${bandGap.toFixed(1)}-band gap toward your ${targetBand} target.`,
     reason: 'Your weakest skill',
     href: recommendedTest.href,
     duration: recommendedTest.duration,

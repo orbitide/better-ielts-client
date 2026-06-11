@@ -1,10 +1,10 @@
 import { cache } from 'react'
 import { fetchListeningTests, fetchListeningTest } from '@/lib/api/ielts'
-import type { ListeningTest } from '@/lib/types/listening'
+import type { ListeningTest, ListeningTestSummary } from '@/lib/types/listening'
 
-export const getAllListeningTests = cache(async (): Promise<ListeningTest[]> => {
+export const getAllListeningTests = cache(async (): Promise<ListeningTestSummary[]> => {
   try {
-    return (await fetchListeningTests()) as ListeningTest[]
+    return (await fetchListeningTests()) as ListeningTestSummary[]
   } catch {
     return []
   }

@@ -16,7 +16,7 @@ export function FlashcardDeck({ topic }: { topic: VocabTopic }) {
   const [cardIdx, setCardIdx] = useState(0)
   const [flipped, setFlipped] = useState(false)
   const [learned, setLearned] = useState<Set<string>>(new Set())
-  const [difficultyFilter, setDifficultyFilter] = useState<'all' | 'easy' | 'medium' | 'hard'>('all')
+  const [difficultyFilter, setDifficultyFilter] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all')
 
   const filteredWords = difficultyFilter === 'all'
     ? topic.words
@@ -46,9 +46,9 @@ export function FlashcardDeck({ topic }: { topic: VocabTopic }) {
   }
 
   const difficultyColor = {
-    easy: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-    medium: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-    hard: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    beginner: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+    intermediate: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+    advanced: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
   }
 
   return (
@@ -67,7 +67,7 @@ export function FlashcardDeck({ topic }: { topic: VocabTopic }) {
           <span className="text-xs text-muted-foreground shrink-0">{learned.size}/{cards.length} learned</span>
         </div>
         <div className="flex items-center gap-2 mt-3">
-          {(['all', 'easy', 'medium', 'hard'] as const).map((d) => (
+          {(['all', 'beginner', 'intermediate', 'advanced'] as const).map((d) => (
             <button
               key={d}
               onClick={() => { setDifficultyFilter(d); setCardIdx(0); setFlipped(false) }}

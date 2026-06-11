@@ -60,3 +60,12 @@ export type ReadingTest = {
   durationMinutes: number
   sections: ReadingSection[]
 }
+
+export type ReadingTestSummary = {
+  id: string
+  title: string
+  type: 'academic' | 'general'
+  durationMinutes: number
+  passageCount: number
+  questionCount: number
+}

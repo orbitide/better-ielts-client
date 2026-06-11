@@ -21,3 +21,11 @@ export type WritingTask2 = {
 }
 
 export type WritingTask = WritingTask1 | WritingTask2
+
+export type WritingTaskSummary = {
+  id: string
+  title: string
+  type: 'task1' | 'task2'
+  wordMinimum: number
+  timeMinutes: number
+}
