@@ -11,6 +11,6 @@ export async function generateMetadata({ params }: { params: Promise<{ testId: s
 export default async function ReadingTestPage({ params }: { params: Promise<{ testId: string }> }) {
   const { testId } = await params
   const test = await getReadingTest(testId)
-  if (!test) notFound()
+  if (!test || test.sections.length === 0) notFound()
   return <ReadingTestShell test={test} />
 }

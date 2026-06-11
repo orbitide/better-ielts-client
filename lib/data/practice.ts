@@ -99,13 +99,15 @@ export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> 
       accent: 'bg-violet-500',
       accentSoft: 'from-violet-500/8',
       color: 'text-violet-600 dark:text-violet-400',
-      tests: reading.map((t) => ({
-        id: t.id,
-        title: t.title,
-        href: `/reading/${t.id}`,
-        duration: `${t.durationMinutes} min`,
-        meta: `${t.passageCount} passages · ${t.questionCount} questions`,
-      })),
+      tests: reading
+        .filter((t) => t.passageCount > 0)
+        .map((t) => ({
+          id: t.id,
+          title: t.title,
+          href: `/reading/${t.id}`,
+          duration: `${t.durationMinutes} min`,
+          meta: `${t.passageCount} passages · ${t.questionCount} questions`,
+        })),
     },
     {
       skill: 'listening',
@@ -115,13 +117,15 @@ export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> 
       accent: 'bg-blue-500',
       accentSoft: 'from-blue-500/8',
       color: 'text-blue-600 dark:text-blue-400',
-      tests: listening.map((t) => ({
-        id: t.id,
-        title: t.title,
-        href: `/listening/${t.id}`,
-        duration: `${t.durationMinutes} min`,
-        meta: `${t.sectionCount} sections · ${t.questionCount} questions`,
-      })),
+      tests: listening
+        .filter((t) => t.sectionCount > 0)
+        .map((t) => ({
+          id: t.id,
+          title: t.title,
+          href: `/listening/${t.id}`,
+          duration: `${t.durationMinutes} min`,
+          meta: `${t.sectionCount} sections · ${t.questionCount} questions`,
+        })),
     },
     {
       skill: 'writing',
@@ -147,13 +151,15 @@ export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> 
       accent: 'bg-pink-500',
       accentSoft: 'from-pink-500/8',
       color: 'text-pink-600 dark:text-pink-400',
-      tests: speaking.map((s) => ({
-        id: s.id,
-        title: s.title,
-        href: `/speaking/${s.id}`,
-        duration: '11–14 min',
-        meta: `${s.partCount} parts`,
-      })),
+      tests: speaking
+        .filter((s) => s.partCount > 0)
+        .map((s) => ({
+          id: s.id,
+          title: s.title,
+          href: `/speaking/${s.id}`,
+          duration: '11–14 min',
+          meta: `${s.partCount} parts`,
+        })),
     },
   ]
 })

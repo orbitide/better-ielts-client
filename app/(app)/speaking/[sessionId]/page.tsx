@@ -11,6 +11,6 @@ export async function generateMetadata({ params }: { params: Promise<{ sessionId
 export default async function SpeakingSessionPage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = await params
   const session = await getSpeakingSession(sessionId)
-  if (!session) notFound()
+  if (!session || session.parts.length === 0) notFound()
   return <SpeakingSessionShell session={session} />
 }
