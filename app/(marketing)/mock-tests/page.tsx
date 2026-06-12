@@ -77,7 +77,7 @@ export default async function MockTestsPage() {
                 {(sectionsByTestId.get(test.id) ?? []).map((section) => {
                   const Icon = skillIcon[section.skill] ?? BookMarked
                   return (
-                    <div key={section.id} className="flex items-center gap-2 text-sm text-muted-foreground rounded-lg bg-muted/50 px-3 py-2">
+                    <div key={section.contentId} className="flex items-center gap-2 text-sm text-muted-foreground rounded-lg bg-muted/50 px-3 py-2">
                       <Icon className="h-3.5 w-3.5 shrink-0" />
                       <span className="capitalize">{section.skill}</span>
                       <span className="ml-auto tabular-nums">{section.durationMinutes}m</span>

@@ -1,9 +1,8 @@
 export type MockTestSection = {
-  id: string
   skill: 'listening' | 'reading' | 'writing' | 'speaking'
-  orderIndex: number
+  contentId: string
+  title: string
   durationMinutes: number
-  skillContentId: string | null
 }
 
 export type MockTest = {

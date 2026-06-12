@@ -141,7 +141,7 @@ export function MockTestShell({ test, sections }: { test: MockTestDetail; sectio
               const SIcon = skillIcon[s.skill] ?? BookMarked
               return (
                 <ExamSectionTab
-                  key={s.id}
+                  key={s.contentId}
                   active={i === sectionIdx}
                   onClick={() => !completedSections.has(i) && i <= sectionIdx && setSectionIdx(i)}
                 >
