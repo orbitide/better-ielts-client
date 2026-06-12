@@ -8,9 +8,28 @@ export async function fetchListeningTests(page = 1, pageSize = 50) {
   return (data.data?.items ?? []) as unknown[]
 }
 
+const LISTENING_SECTIONS_PAGE_SIZE = 10 // max 4 sections, generous headroom
+const LISTENING_QUESTIONS_PAGE_SIZE = 50 // ~10 questions per section, generous headroom
+
 export async function fetchListeningTest(id: string) {
-  const { data } = await httpClient.get(`/api/ielts/listening/${id}`)
-  return data.data as unknown
+  const { data: testData } = await httpClient.get(`/api/ielts/listening/${id}`)
+  const test = testData.data as Record<string, unknown>
+
+  const { data: sectionsData } = await httpClient.get(`/api/ielts/listening/${id}/sections`, {
+    params: { page: 1, pageSize: LISTENING_SECTIONS_PAGE_SIZE },
+  })
+  const sections = (sectionsData.data?.items ?? []) as Record<string, unknown>[]
+
+  const sectionsWithQuestions = await Promise.all(
+    sections.map(async (section) => {
+      const { data: questionsData } = await httpClient.get(`/api/ielts/listening/sections/${section.id}/questions`, {
+        params: { page: 1, pageSize: LISTENING_QUESTIONS_PAGE_SIZE },
+      })
+      return { ...section, questions: questionsData.data?.items ?? [] }
+    })
+  )
+
+  return { ...test, sections: sectionsWithQuestions } as unknown
 }
 
 // ─── Reading ─────────────────────────────────────────────────────────────────
@@ -66,8 +85,13 @@ export async function fetchSpeakingSessions(page = 1, pageSize = 50) {
 }
 
 export async function fetchSpeakingSession(id: string) {
-  const { data } = await httpClient.get(`/api/ielts/speaking/${id}`)
-  return data.data as unknown
+  const { data: sessionData } = await httpClient.get(`/api/ielts/speaking/${id}`)
+  const session = sessionData.data as Record<string, unknown>
+
+  const { data: partsData } = await httpClient.get(`/api/ielts/speaking/${id}/parts`)
+  const parts = (partsData.data ?? []) as Record<string, unknown>[]
+
+  return { ...session, parts } as unknown
 }
 
 // ─── Vocabulary ───────────────────────────────────────────────────────────────

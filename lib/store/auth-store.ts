@@ -51,7 +51,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
   loginWithEmail: async (email, password) => {
     const result = await loginAction(email, password)
     if (result.ok) {
-      set({ user: result.user, isAuthenticated: true })
+      set({ user: result.user, isAuthenticated: true, _hasHydrated: true })
       await syncOnboardingStatus()
       return { ok: true }
     }
@@ -60,7 +60,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
   loginWithGoogle: async (idToken) => {
     const result = await googleAuthAction(idToken)
     if (result.ok) {
-      set({ user: result.user, isAuthenticated: true })
+      set({ user: result.user, isAuthenticated: true, _hasHydrated: true })
       await syncOnboardingStatus()
       return { ok: true }
     }
@@ -72,7 +72,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
       return { ok: true, requiresVerification: true, email: result.email }
     }
     if (result.ok) {
-      set({ user: result.user, isAuthenticated: true })
+      set({ user: result.user, isAuthenticated: true, _hasHydrated: true })
       await syncOnboardingStatus()
       return { ok: true }
     }

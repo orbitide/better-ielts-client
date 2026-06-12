@@ -1,37 +1,11 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const ACCESS_COOKIE = 'auth_access'
-
-type JwtPayload = {
-  sub: string
-  exp: number
-}
-
-function decodeJwt(token: string): JwtPayload | null {
-  try {
-    const parts = token.split('.')
-    if (parts.length !== 3) return null
-    const payload = JSON.parse(
-      atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))
-    ) as JwtPayload
-    if (payload.exp * 1000 < Date.now()) return null
-    return payload
-  } catch {
-    return null
-  }
-}
-
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  const token = request.cookies.get(ACCESS_COOKIE)?.value
-
-  if (!token || !decodeJwt(token)) {
-    return NextResponse.redirect(
-      new URL(`/login?redirect=${encodeURIComponent(pathname)}`, request.url)
-    )
-  }
-
+export function middleware(_request: NextRequest) {
+  // TODO: re-enable cookie-based auth check once the API is proxied through
+  // localhost:3000 (currently auth_access is set on the API origin, e.g.
+  // localhost:5000, so this middleware can never see it). Until then, auth
+  // is enforced client-side via AuthGate + the Zustand auth store bootstrap.
   return NextResponse.next()
 }
 
