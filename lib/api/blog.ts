@@ -1,4 +1,4 @@
-import http from '@/lib/api/http'
+import { httpClient } from '@/lib/api/http'
 import type { BlogPost } from '@/lib/types/blog'
 
 type ApiPost = {
@@ -47,13 +47,13 @@ function mapPost(p: ApiPost): BlogPost {
 }
 
 export async function fetchBlogPosts(page = 1, pageSize = 50): Promise<BlogPost[]> {
-  const { data } = await http.get<ApiResponse<PagedResult<ApiPost>>>('/api/blog', {
+  const { data } = await httpClient.get<ApiResponse<PagedResult<ApiPost>>>('/api/blog', {
     params: { page, pageSize },
   })
   return data.data.items.map(mapPost)
 }
 
 export async function fetchBlogPostBySlug(slug: string): Promise<BlogPost> {
-  const { data } = await http.get<ApiResponse<ApiPost>>(`/api/blog/${slug}`)
+  const { data } = await httpClient.get<ApiResponse<ApiPost>>(`/api/blog/${slug}`)
   return mapPost(data.data)
 }

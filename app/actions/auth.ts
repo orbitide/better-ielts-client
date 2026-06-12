@@ -1,7 +1,4 @@
-'use server'
-
-import { cookies } from 'next/headers'
-import http from '@/lib/api/http'
+import { httpClient } from '@/lib/api/http'
 import type { User } from '@/lib/types/user'
 
 type ApiUser = {
@@ -58,28 +55,18 @@ function mapApiUser(u: ApiUser): User {
   }
 }
 
-async function setAuthCookie(accessToken: string, expiresIn: number) {
-  const cookieStore = await cookies()
-  cookieStore.set('auth_access', accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: expiresIn,
-    path: '/',
-  })
-}
 
 export async function loginAction(
   email: string,
   password: string
 ): Promise<{ ok: true; user: User } | { ok: false; error: string }> {
   try {
-    const { data } = await http.post<ApiAuthResponse>('/api/auth/login', { email, password })
+    const { data } = await httpClient.post<ApiAuthResponse>('/api/auth/login', { email, password })
     if (!data.success || !data.data?.token) {
       return { ok: false, error: data.message ?? 'Invalid email or password.' }
     }
     const { accessToken, expiresIn, user } = data.data.token
-    await setAuthCookie(accessToken, expiresIn)
+
     return { ok: true, user: mapApiUser(user) }
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Unable to connect to server.' }
@@ -96,7 +83,7 @@ export async function registerAction(
   | { ok: false; error: string }
 > {
   try {
-    const { data } = await http.post<ApiAuthResponse>('/api/auth/register', { name, email, password })
+    const { data } = await httpClient.post<ApiAuthResponse>('/api/auth/register', { name, email, password })
     if (!data.success) {
       return { ok: false, error: data.message ?? 'Registration failed.' }
     }
@@ -107,7 +94,6 @@ export async function registerAction(
       return { ok: false, error: data.message ?? 'Registration failed.' }
     }
     const { accessToken, expiresIn, user } = data.data.token
-    await setAuthCookie(accessToken, expiresIn)
     return { ok: true, user: mapApiUser(user) }
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Unable to connect to server.' }
@@ -119,7 +105,7 @@ export async function verifyEmailAction(
   token: string
 ): Promise<{ ok: boolean; message: string }> {
   try {
-    const { data } = await http.post<{ success: boolean; message?: string }>('/api/auth/verify-email', {
+    const { data } = await httpClient.post<{ success: boolean; message?: string }>('/api/auth/verify-email', {
       email,
       token,
     })
@@ -131,7 +117,7 @@ export async function verifyEmailAction(
 
 export async function resendVerificationAction(email: string): Promise<{ ok: boolean; message: string }> {
   try {
-    const { data } = await http.post<{ success: boolean; message?: string }>('/api/auth/resend-verification', {
+    const { data } = await httpClient.post<{ success: boolean; message?: string }>('/api/auth/resend-verification', {
       email,
     })
     return { ok: true, message: data.message ?? 'If an account exists and is not verified, a verification email has been sent.' }
@@ -144,12 +130,11 @@ export async function googleAuthAction(
   idToken: string
 ): Promise<{ ok: true; user: User } | { ok: false; error: string }> {
   try {
-    const { data } = await http.post<ApiAuthResponse>('/api/auth/google', { idToken })
+    const { data } = await httpClient.post<ApiAuthResponse>('/api/auth/google', { idToken })
     if (!data.success || !data.data?.token) {
       return { ok: false, error: data.message ?? 'Google sign-in failed.' }
     }
     const { accessToken, expiresIn, user } = data.data.token
-    await setAuthCookie(accessToken, expiresIn)
     return { ok: true, user: mapApiUser(user) }
   } catch {
     return { ok: false, error: 'Google sign-in failed.' }
@@ -158,7 +143,7 @@ export async function googleAuthAction(
 
 export async function meAction(): Promise<{ ok: true; user: User } | { ok: false }> {
   try {
-    const { data } = await http.get<{ success: boolean; data?: ApiUser }>('/api/auth/me')
+    const { data } = await httpClient.get<{ success: boolean; data?: ApiUser }>('/api/auth/me')
     if (!data.success || !data.data) return { ok: false }
     return { ok: true, user: mapApiUser(data.data) }
   } catch {
@@ -168,19 +153,16 @@ export async function meAction(): Promise<{ ok: true; user: User } | { ok: false
 
 export async function logoutAction(): Promise<void> {
   try {
-    await http.post('/api/auth/logout')
+    await httpClient.post('/api/auth/logout')
   } catch {
     // Ignore — session will expire naturally
   }
-  const cookieStore = await cookies()
-  cookieStore.delete('auth_access')
 }
 
 export async function refreshAction(): Promise<boolean> {
   try {
-    const { data } = await http.post<ApiTokenResponse>('/api/auth/refresh')
+    const { data } = await httpClient.post<ApiTokenResponse>('/api/auth/refresh')
     if (!data.success || !data.data) return false
-    await setAuthCookie(data.data.accessToken, data.data.expiresIn)
     return true
   } catch {
     return false
@@ -189,7 +171,7 @@ export async function refreshAction(): Promise<boolean> {
 
 export async function forgotPasswordAction(email: string): Promise<{ ok: boolean; message: string }> {
   try {
-    const { data } = await http.post<{ success: boolean; message?: string }>(
+    const { data } = await httpClient.post<{ success: boolean; message?: string }>(
       '/api/auth/forgot-password',
       { email }
     )
@@ -206,7 +188,7 @@ export async function resetPasswordAction(
   confirmPassword: string
 ): Promise<{ ok: boolean; message: string }> {
   try {
-    const { data } = await http.post<{ success: boolean; message?: string }>(
+    const { data } = await httpClient.post<{ success: boolean; message?: string }>(
       '/api/auth/reset-password',
       { email, token, newPassword, confirmPassword }
     )
