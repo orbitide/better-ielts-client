@@ -1,4 +1,5 @@
 import http from '@/lib/api/http'
+import type { PagedResult } from '@/lib/types/paged-result'
 
 // ─── Listening ───────────────────────────────────────────────────────────────
 
@@ -93,6 +94,11 @@ export async function fetchMockTests(page = 1, pageSize = 50) {
 export async function fetchMockTest(id: string) {
   const { data } = await http.get(`/api/ielts/mock-tests/${id}`)
   return data.data as unknown
+}
+
+export async function fetchMockTestSections(id: string, page = 1, pageSize = 20) {
+  const { data } = await http.get(`/api/ielts/mock-tests/${id}/sections`, { params: { page, pageSize } })
+  return data.data as PagedResult<unknown>
 }
 
 // ─── Exam Guide ───────────────────────────────────────────────────────────────

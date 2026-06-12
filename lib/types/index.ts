@@ -1,4 +1,5 @@
 export type { BandScore, User } from './user'
+export type { PagedResult } from './paged-result'
 export type { LessonType, Lesson, Course } from './course'
 export type {
   McqQuestion,
@@ -27,7 +28,7 @@ export type {
   StudyPlan,
 } from './study-plan'
 export type { BlogCategory, BlogPost } from './blog'
-export type { MockTestSection, MockTest } from './mock-test'
+export type { MockTestSection, MockTest, MockTestDetail } from './mock-test'
 export type {
   IeltsVariant,
   RawSkill,

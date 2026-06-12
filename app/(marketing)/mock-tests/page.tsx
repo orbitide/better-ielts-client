@@ -1,4 +1,4 @@
-import { getAllMockTests } from '@/lib/data/mock-tests'
+import { getAllMockTests, getMockTestSections } from '@/lib/data/mock-tests'
 import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { cn } from '@/lib/utils'
@@ -26,6 +26,11 @@ const skillIcon: Record<string, React.ElementType> = {
 
 export default async function MockTestsPage() {
   const tests = await getAllMockTests()
+  const sectionsByTestId = new Map(
+    await Promise.all(
+      tests.map(async (test) => [test.id, (await getMockTestSections(test.id)).items] as const),
+    ),
+  )
 
   return (
     <div className="py-12 min-h-[85vh]">
@@ -69,7 +74,7 @@ export default async function MockTestsPage() {
 
               {/* Section breakdown */}
               <div className="grid grid-cols-2 gap-2">
-                {test.sections.map((section) => {
+                {(sectionsByTestId.get(test.id) ?? []).map((section) => {
                   const Icon = skillIcon[section.skill] ?? BookMarked
                   return (
                     <div key={section.id} className="flex items-center gap-2 text-sm text-muted-foreground rounded-lg bg-muted/50 px-3 py-2">

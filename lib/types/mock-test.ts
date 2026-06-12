@@ -3,7 +3,7 @@ export type MockTestSection = {
   skill: 'listening' | 'reading' | 'writing' | 'speaking'
   orderIndex: number
   durationMinutes: number
-  testId: string
+  skillContentId: string | null
 }
 
 export type MockTest = {
@@ -12,6 +12,16 @@ export type MockTest = {
   description: string
   type: 'academic' | 'general'
   durationMinutes: number
-  sections: MockTestSection[]
+  sectionCount: number
+  difficulty: 'beginner' | 'intermediate' | 'advanced'
+}
+
+// Detail view of a single mock test — sections are fetched separately via a paginated call
+export type MockTestDetail = {
+  id: string
+  title: string
+  description: string
+  type: 'academic' | 'general'
+  durationMinutes: number
   difficulty: 'beginner' | 'intermediate' | 'advanced'
 }

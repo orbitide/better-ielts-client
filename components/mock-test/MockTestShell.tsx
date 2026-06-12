@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { BandBadge } from '@/components/shared/BandBadge'
-import type { MockTest } from '@/lib/types/mock-test'
+import type { MockTestDetail, MockTestSection } from '@/lib/types/mock-test'
 import { Headphones, BookMarked, PenLine, Mic, Clock, ChevronRight, CheckCircle, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { ExamIntroScreen } from '@/components/exam/ExamIntroScreen'
@@ -34,19 +34,19 @@ const MOCK_RESULTS = {
   overall: 6.5,
 }
 
-export function MockTestShell({ test }: { test: MockTest }) {
+export function MockTestShell({ test, sections }: { test: MockTestDetail; sections: MockTestSection[] }) {
   const [started, setStarted] = useState(false)
   const [sectionIdx, setSectionIdx] = useState(0)
   const [completedSections, setCompletedSections] = useState<Set<number>>(new Set())
   const [finished, setFinished] = useState(false)
 
-  const currentSection = test.sections[sectionIdx]
-  const progress = (completedSections.size / test.sections.length) * 100
+  const currentSection = sections[sectionIdx]
+  const progress = (completedSections.size / sections.length) * 100
 
   const markComplete = () => {
     const next = new Set(completedSections).add(sectionIdx)
     setCompletedSections(next)
-    if (sectionIdx < test.sections.length - 1) {
+    if (sectionIdx < sections.length - 1) {
       setSectionIdx((i) => i + 1)
     } else {
       setFinished(true)
@@ -65,10 +65,10 @@ export function MockTestShell({ test }: { test: MockTest }) {
       <ExamIntroScreen
         module={`${test.type} IELTS Mock Test`}
         title={test.title}
-        meta={`${test.sections.length} sections · ${test.durationMinutes} minutes total`}
+        meta={`${sections.length} sections · ${test.durationMinutes} minutes total`}
         instructions={[
           test.description,
-          ...test.sections.map(
+          ...sections.map(
             (s) =>
               `${s.skill.charAt(0).toUpperCase() + s.skill.slice(1)}: ${s.durationMinutes} minutes`,
           ),
@@ -137,7 +137,7 @@ export function MockTestShell({ test }: { test: MockTest }) {
         exitHref={examExitHrefs.mockTest}
         center={
           <>
-            {test.sections.map((s, i) => {
+            {sections.map((s, i) => {
               const SIcon = skillIcon[s.skill] ?? BookMarked
               return (
                 <ExamSectionTab
@@ -157,7 +157,7 @@ export function MockTestShell({ test }: { test: MockTest }) {
         }
         trailing={
           <span className="text-xs text-white/60">
-            {completedSections.size}/{test.sections.length} done
+            {completedSections.size}/{sections.length} done
           </span>
         }
       />
@@ -165,7 +165,7 @@ export function MockTestShell({ test }: { test: MockTest }) {
       <div className="border-b border-black/10 bg-white px-4 py-2 dark:border-white/10 dark:bg-[#1c1c1c]">
         <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
           <span>
-            Section {sectionIdx + 1} of {test.sections.length}
+            Section {sectionIdx + 1} of {sections.length}
           </span>
           <span className="flex items-center gap-1">
             <Clock className="size-3" />
