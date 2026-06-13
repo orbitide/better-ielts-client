@@ -17,8 +17,9 @@ import { ExamResultsScreen } from '@/components/exam/ExamResultsScreen'
 import { examExitHrefs } from '@/lib/utils/exam-routes'
 import { fetchCallTopics, submitCallReview } from '@/lib/api/calls'
 import {
-  ensureCallConnection, joinQueue, leaveQueue, nextTopic, endCall, sendSignal,
+  ensureCallConnection, joinQueue, leaveQueue, nextTopic, endCall, sendSignal, rejoinSession,
   onMatchFound, onNoMatchFound, onTopicChanged, onPartnerLeft, onCallEnded, onQueueCountChanged, onReceiveSignal,
+  onReconnected,
 } from '@/lib/realtime/call-connection'
 import { getLocalAudioStream, createCallPeerConnection, PendingIceQueue } from '@/lib/webrtc/call-peer'
 import { startAudioLevelMeter } from '@/lib/webrtc/audio-level'
@@ -128,6 +129,7 @@ export function CallShell() {
   const callSecondsRef = useRef(0)
   const sessionTopicsRef = useRef<CallSessionTopicEntry[]>([])
   const currentTopicIndexRef = useRef(0)
+  const selectedTopicIdsRef = useRef<Set<string>>(new Set())
 
   // WebRTC state
   const peerRef = useRef<RTCPeerConnection | null>(null)
@@ -146,6 +148,7 @@ export function CallShell() {
   useEffect(() => { callSecondsRef.current = callSeconds }, [callSeconds])
   useEffect(() => { sessionTopicsRef.current = sessionTopics }, [sessionTopics])
   useEffect(() => { currentTopicIndexRef.current = currentTopicIndex }, [currentTopicIndex])
+  useEffect(() => { selectedTopicIdsRef.current = selectedTopicIds }, [selectedTopicIds])
 
   function cleanupCallMedia() {
     audioLevelCleanupRef.current?.()
@@ -317,6 +320,14 @@ export function CallShell() {
       void handleCallSignal(payload)
     })
 
+    const offReconnected = onReconnected(() => {
+      if (phaseRef.current === 'matching') {
+        void joinQueue(Array.from(selectedTopicIdsRef.current)).catch(() => {})
+      } else if ((phaseRef.current === 'connecting' || phaseRef.current === 'active') && sessionIdRef.current) {
+        void rejoinSession(sessionIdRef.current).catch(() => {})
+      }
+    })
+
     return () => {
       offMatchFound()
       offNoMatchFound()
@@ -325,6 +336,7 @@ export function CallShell() {
       offCallEnded()
       offQueueCountChanged()
       offReceiveSignal()
+      offReconnected()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

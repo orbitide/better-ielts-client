@@ -24,6 +24,12 @@ function getConnection(): HubConnection {
   return connection
 }
 
+export function onReconnected(handler: () => void) {
+  const conn = getConnection()
+  conn.onreconnected(handler)
+  return () => { /* SignalR has no off() for onreconnected; handler is removed when connection is discarded */ }
+}
+
 export async function ensureCallConnection(): Promise<HubConnection> {
   const conn = getConnection()
   if (conn.state === HubConnectionState.Connected) return conn
@@ -58,6 +64,11 @@ export async function nextTopic(sessionId: string): Promise<void> {
 export async function endCall(sessionId: string): Promise<void> {
   const conn = await ensureCallConnection()
   await conn.invoke('EndCall', sessionId)
+}
+
+export async function rejoinSession(sessionId: string): Promise<void> {
+  const conn = await ensureCallConnection()
+  await conn.invoke('RejoinSession', sessionId)
 }
 
 export async function sendSignal(payload: CallSignalPayload): Promise<void> {
