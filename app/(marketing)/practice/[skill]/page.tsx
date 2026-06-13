@@ -9,6 +9,7 @@ import { SkillPracticeHub } from '@/components/practice/SkillPracticeHub'
 
 type PageProps = {
   params: Promise<{ skill: string }>
+  searchParams: Promise<{ type?: string }>
 }
 
 export function generateStaticParams() {
@@ -26,8 +27,9 @@ export async function generateMetadata({ params }: PageProps) {
   }
 }
 
-export default async function SkillPracticePage({ params }: PageProps) {
+export default async function SkillPracticePage({ params, searchParams }: PageProps) {
   const { skill } = await params
+  const { type } = await searchParams
 
   if (!isPracticeSkill(skill)) {
     notFound()
@@ -42,5 +44,7 @@ export default async function SkillPracticePage({ params }: PageProps) {
     notFound()
   }
 
-  return <SkillPracticeHub group={group} recommendation={recommendation} />
+  const initialTaskType = type === 'task1' || type === 'task2' ? type : undefined
+
+  return <SkillPracticeHub group={group} recommendation={recommendation} initialTaskType={initialTaskType} />
 }

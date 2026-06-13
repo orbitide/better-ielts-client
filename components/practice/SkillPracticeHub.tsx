@@ -13,9 +13,11 @@ const skillIcons = {
 export function SkillPracticeHub({
   group,
   recommendation,
+  initialTaskType,
 }: {
   group: PracticeSkillGroup
   recommendation: PracticeRecommendation
+  initialTaskType?: 'task1' | 'task2'
 }) {
   const Icon = skillIcons[group.skill]
 
@@ -56,6 +58,7 @@ export function SkillPracticeHub({
             tests={group.tests}
             recommendedHref={recommendation.href}
             color={group.color}
+            initialTaskType={initialTaskType}
           />
         </div>
       </div>

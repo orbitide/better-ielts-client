@@ -38,6 +38,7 @@ export type PracticeTestItem = {
   duration: string
   meta?: string
   series?: PracticeTestSeries
+  taskType?: 'task1' | 'task2'
 }
 
 export type PracticeSkillGroup = {
@@ -141,6 +142,7 @@ export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> 
         href: `/writing/${t.id}`,
         duration: `${t.timeMinutes} min`,
         meta: formatWritingMeta(t.type, t.timeMinutes),
+        taskType: t.type,
       })),
     },
     {
