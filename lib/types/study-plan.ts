@@ -15,14 +15,11 @@ export type StudyTask = {
   durationMinutes: number
   status: TaskStatus
   linkHref: string
-  scheduledDate: string
 }
 
 export type StudyPlanDay = {
   date: string
   tasks: StudyTask[]
-  totalMinutes: number
-  completedMinutes: number
 }
 
 export type StudyPlan = {

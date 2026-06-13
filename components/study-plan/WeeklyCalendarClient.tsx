@@ -13,6 +13,14 @@ import type { StudyPlanDay } from '@/lib/types/study-plan'
 
 const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
+function dayMinutes(day: StudyPlanDay) {
+  const totalMinutes = day.tasks.reduce((sum, t) => sum + t.durationMinutes, 0)
+  const completedMinutes = day.tasks
+    .filter((t) => t.status === 'completed')
+    .reduce((sum, t) => sum + t.durationMinutes, 0)
+  return { totalMinutes, completedMinutes }
+}
+
 interface WeeklyCalendarClientProps {
   days: StudyPlanDay[]
   onTaskComplete?: (taskId: string) => void
@@ -23,6 +31,7 @@ export function WeeklyCalendarClient({ days, onTaskComplete }: WeeklyCalendarCli
   const todayIndex = days.findIndex((d) => d.date === today)
   const [selectedIndex, setSelectedIndex] = useState(todayIndex >= 0 ? todayIndex : 0)
   const selectedDay = days[selectedIndex]
+  const selectedDayMinutes = dayMinutes(selectedDay)
 
   return (
     <div className="space-y-4">
@@ -35,7 +44,8 @@ export function WeeklyCalendarClient({ days, onTaskComplete }: WeeklyCalendarCli
               const dayName = dayNames[i]
               const isToday = day.date === today
               const isSelected = i === selectedIndex
-              const pct = day.totalMinutes > 0 ? (day.completedMinutes / day.totalMinutes) * 100 : 0
+              const { totalMinutes, completedMinutes } = dayMinutes(day)
+              const pct = totalMinutes > 0 ? (completedMinutes / totalMinutes) * 100 : 0
 
               return (
                 <button
@@ -72,7 +82,7 @@ export function WeeklyCalendarClient({ days, onTaskComplete }: WeeklyCalendarCli
             </CardTitle>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="h-3.5 w-3.5" />
-              <span>{formatMinutes(selectedDay.completedMinutes)}/{formatMinutes(selectedDay.totalMinutes)}</span>
+              <span>{formatMinutes(selectedDayMinutes.completedMinutes)}/{formatMinutes(selectedDayMinutes.totalMinutes)}</span>
             </div>
           </div>
         </CardHeader>

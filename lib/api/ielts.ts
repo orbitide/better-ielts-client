@@ -160,8 +160,8 @@ export async function fetchCurrentStudyPlan() {
   return data.data
 }
 
-export async function createStudyPlan(targetBand: number, weeklyGoalMinutes = 300) {
-  const { data } = await httpClient.post('/api/ielts/study-plans', { targetBand, weeklyGoalMinutes })
+export async function createStudyPlan(targetBand: number, weeklyGoalMinutes = 300, focusSkills: string[] = []) {
+  const { data } = await httpClient.post('/api/ielts/study-plans', { targetBand, weeklyGoalMinutes, focusSkills })
   return data.data
 }
 

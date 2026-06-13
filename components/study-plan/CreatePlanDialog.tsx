@@ -20,9 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { generateStudyPlan, currentWeekStartDate } from '@/lib/utils/generate-study-plan'
-import { useStudyPlanStore } from '@/lib/store/study-plan-store'
-import type { TaskCategory } from '@/lib/types/study-plan'
+import { createStudyPlan } from '@/lib/api/ielts'
+import type { StudyPlan, TaskCategory } from '@/lib/types/study-plan'
 
 const SKILL_OPTIONS: { id: TaskCategory; label: string; Icon: React.ElementType }[] = [
   { id: 'listening', label: 'Listening', Icon: Headphones },
@@ -46,11 +45,12 @@ interface CreatePlanDialogProps {
   currentTargetBand?: number
   currentWeeklyGoalMinutes?: number
   hasPlan?: boolean
+  onPlanCreated?: (plan: StudyPlan) => void
 }
 
-export function CreatePlanDialog({ currentTargetBand, currentWeeklyGoalMinutes, hasPlan }: CreatePlanDialogProps) {
+export function CreatePlanDialog({ currentTargetBand, currentWeeklyGoalMinutes, hasPlan, onPlanCreated }: CreatePlanDialogProps) {
   const [open, setOpen] = useState(false)
-  const setPlan = useStudyPlanStore((s) => s.setPlan)
+  const [generating, setGenerating] = useState(false)
 
   const [targetBand, setTargetBand] = useState(String(currentTargetBand ?? 7))
   const [weeklyGoal, setWeeklyGoal] = useState(String(currentWeeklyGoalMinutes ?? 420))
@@ -62,18 +62,18 @@ export function CreatePlanDialog({ currentTargetBand, currentWeeklyGoalMinutes, 
     )
   }
 
-  function handleGenerate() {
-    const plan = generateStudyPlan({
-      targetBand: parseFloat(targetBand),
-      weeklyGoalMinutes: parseInt(weeklyGoal, 10),
-      focusSkills,
-      weekStartDate: currentWeekStartDate(),
-    })
-    setPlan(plan)
-    setOpen(false)
+  async function handleGenerate() {
+    setGenerating(true)
+    try {
+      const plan = await createStudyPlan(parseFloat(targetBand), parseInt(weeklyGoal, 10), focusSkills)
+      onPlanCreated?.(plan as StudyPlan)
+      setOpen(false)
+    } finally {
+      setGenerating(false)
+    }
   }
 
-  const canGenerate = focusSkills.length > 0
+  const canGenerate = focusSkills.length > 0 && !generating
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -155,7 +155,7 @@ export function CreatePlanDialog({ currentTargetBand, currentWeeklyGoalMinutes, 
             className="gap-2"
           >
             <Sparkles className="h-4 w-4" />
-            Generate Plan
+            {generating ? 'Generating…' : 'Generate Plan'}
           </Button>
         </DialogFooter>
       </DialogContent>
