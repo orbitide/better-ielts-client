@@ -102,6 +102,7 @@ export function CallShell() {
   const [isSpeakerMuted, setIsSpeakerMuted] = useState(false)
   const [micError, setMicError] = useState<string | null>(null)
   const [audioLevel, setAudioLevel] = useState(0)
+  const [remoteAudioLevel, setRemoteAudioLevel] = useState(0)
 
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [partner, setPartner] = useState<PartnerInfoDto | null>(null)
@@ -140,6 +141,7 @@ export function CallShell() {
   const iceQueueRef = useRef(new PendingIceQueue())
   const isInitiatorRef = useRef(false)
   const audioLevelCleanupRef = useRef<(() => void) | null>(null)
+  const remoteAudioLevelCleanupRef = useRef<(() => void) | null>(null)
 
   const clearInterval_ = () => { if (intervalRef.current) clearInterval(intervalRef.current) }
   const clearTimeout_ = () => { if (timeoutRef.current) clearTimeout(timeoutRef.current) }
@@ -155,6 +157,8 @@ export function CallShell() {
   function cleanupCallMedia() {
     audioLevelCleanupRef.current?.()
     audioLevelCleanupRef.current = null
+    remoteAudioLevelCleanupRef.current?.()
+    remoteAudioLevelCleanupRef.current = null
     peerRef.current?.close()
     peerRef.current = null
     localStreamRef.current?.getTracks().forEach((t) => t.stop())
@@ -166,6 +170,7 @@ export function CallShell() {
     remoteStreamRef.current = null
     iceQueueRef.current = new PendingIceQueue()
     setAudioLevel(0)
+    setRemoteAudioLevel(0)
     setMicError(null)
     setIsSpeakerMuted(false)
   }
@@ -180,6 +185,8 @@ export function CallShell() {
       onRemoteStream: (stream) => {
         remoteStreamRef.current = stream
         if (remoteAudioRef.current) remoteAudioRef.current.srcObject = stream
+        remoteAudioLevelCleanupRef.current?.()
+        remoteAudioLevelCleanupRef.current = startAudioLevelMeter(stream, setRemoteAudioLevel)
       },
     })
     peerRef.current = pc
@@ -672,27 +679,31 @@ export function CallShell() {
           {/* Avatars */}
           <div className="flex flex-1 items-center justify-center gap-12 sm:gap-20">
             <div className="flex flex-col items-center gap-2">
-              <div className="size-20 rounded-full bg-[#2b2f36] text-white flex items-center justify-center text-xl font-bold">
-                {userInitials}
+              <div className="relative flex items-center justify-center">
+                <div
+                  className="absolute rounded-full bg-[#2b2f36]/30 dark:bg-white/20 transition-transform duration-100"
+                  style={{
+                    inset: `-${Math.min(14, audioLevel * 40)}px`,
+                    transform: `scale(${1 + Math.min(0.25, audioLevel)})`,
+                  }}
+                />
+                <div className="relative size-20 rounded-full bg-[#2b2f36] text-white flex items-center justify-center text-xl font-bold">
+                  {userInitials}
+                </div>
               </div>
               <span className="text-xs text-muted-foreground">You</span>
             </div>
 
-            <div className="flex h-12 items-end gap-0.5">
-              {Array.from({ length: 8 }).map((_, i) => (
+            <div className="flex flex-col items-center gap-2">
+              <div className="relative flex items-center justify-center">
                 <div
-                  key={i}
-                  className="w-1.5 rounded-full bg-[#2b2f36]/40 dark:bg-white/30 transition-[height] duration-100"
+                  className="absolute rounded-full bg-emerald-500/30 transition-transform duration-100"
                   style={{
-                    height: `${Math.min(100, 20 + audioLevel * 100 * (0.6 + (i % 4) * 0.15))}%`,
+                    inset: `-${Math.min(14, remoteAudioLevel * 40)}px`,
+                    transform: `scale(${1 + Math.min(0.25, remoteAudioLevel)})`,
                   }}
                 />
-              ))}
-            </div>
-
-            <div className="flex flex-col items-center gap-2">
-              <div className="relative">
-                <div className="size-20 rounded-full bg-emerald-700 text-white flex items-center justify-center text-xl font-bold">
+                <div className="relative size-20 rounded-full bg-emerald-700 text-white flex items-center justify-center text-xl font-bold">
                   {partnerInitials}
                 </div>
                 <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#181818]" />

@@ -2,6 +2,7 @@
 // Uses setInterval rather than requestAnimationFrame to keep React re-renders manageable.
 export function startAudioLevelMeter(stream: MediaStream, onLevel: (level: number) => void): () => void {
   const ctx = new AudioContext()
+  void ctx.resume()
   const source = ctx.createMediaStreamSource(stream)
   const analyser = ctx.createAnalyser()
   analyser.fftSize = 256
