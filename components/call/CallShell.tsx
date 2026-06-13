@@ -5,7 +5,7 @@ import Link from 'next/link'
 import {
   Leaf, Cpu, GraduationCap, Heart, Plane, Briefcase,
   Users, Palette, UtensilsCrossed, Trophy, Building2, Radio,
-  Mic, MicOff, ChevronRight, RotateCcw, CheckCircle,
+  Mic, MicOff, Volume2, VolumeX, ChevronRight, RotateCcw, CheckCircle,
   Star, Check,
   type LucideIcon,
 } from 'lucide-react'
@@ -99,6 +99,7 @@ export function CallShell() {
   const [queueCount, setQueueCount] = useState<number | null>(null)
   const [callSeconds, setCallSeconds] = useState(0)
   const [isMuted, setIsMuted] = useState(false)
+  const [isSpeakerMuted, setIsSpeakerMuted] = useState(false)
   const [micError, setMicError] = useState<string | null>(null)
   const [audioLevel, setAudioLevel] = useState(0)
 
@@ -157,10 +158,14 @@ export function CallShell() {
     peerRef.current = null
     localStreamRef.current?.getTracks().forEach((t) => t.stop())
     localStreamRef.current = null
-    if (remoteAudioRef.current) remoteAudioRef.current.srcObject = null
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.srcObject = null
+      remoteAudioRef.current.muted = false
+    }
     iceQueueRef.current = new PendingIceQueue()
     setAudioLevel(0)
     setMicError(null)
+    setIsSpeakerMuted(false)
   }
 
   function rebuildPeerConnection(sessionId: string) {
@@ -237,6 +242,14 @@ export function CallShell() {
     setIsMuted((m) => {
       const next = !m
       localStreamRef.current?.getAudioTracks().forEach((t) => { t.enabled = !next })
+      return next
+    })
+  }
+
+  function toggleSpeakerMute() {
+    setIsSpeakerMuted((m) => {
+      const next = !m
+      if (remoteAudioRef.current) remoteAudioRef.current.muted = next
       return next
     })
   }
@@ -437,6 +450,7 @@ export function CallShell() {
     setNoMatchMessage(null)
     setCallSeconds(0)
     setIsMuted(false)
+    setIsSpeakerMuted(false)
     setSessionId(null)
     setPartner(null)
     setSessionTopics([])
@@ -611,14 +625,24 @@ export function CallShell() {
             <span className="font-mono text-sm tabular-nums">{formatCallTime(callSeconds)}</span>
           }
           trailing={
-            <button
-              type="button"
-              onClick={toggleMute}
-              aria-label={isMuted ? 'Unmute' : 'Mute'}
-              className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-            >
-              {isMuted ? <MicOff className="size-4" /> : <Mic className="size-4" />}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={toggleSpeakerMute}
+                aria-label={isSpeakerMuted ? 'Unmute speaker' : 'Mute speaker'}
+                className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                {isSpeakerMuted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
+              </button>
+              <button
+                type="button"
+                onClick={toggleMute}
+                aria-label={isMuted ? 'Unmute' : 'Mute'}
+                className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                {isMuted ? <MicOff className="size-4" /> : <Mic className="size-4" />}
+              </button>
+            </>
           }
         />
 
