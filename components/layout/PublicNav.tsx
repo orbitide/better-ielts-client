@@ -4,6 +4,7 @@ import { BrandName } from './BrandName'
 import { NavLink } from './NavLink'
 import { ThemeToggle } from './ThemeToggle'
 import { PublicNavActions } from './PublicNavActions'
+import { PublicMobileNav } from './PublicMobileNav'
 
 const navLinks = [
   { href: '/practice', label: 'Practice' },
@@ -42,7 +43,10 @@ export function PublicNav() {
           {/* Right actions */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <PublicNavActions />
+            <div className="hidden md:block">
+              <PublicNavActions />
+            </div>
+            <PublicMobileNav />
           </div>
         </div>
       </div>
