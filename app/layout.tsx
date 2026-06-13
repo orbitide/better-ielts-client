@@ -5,6 +5,7 @@ import './globals.css'
 import { ThemeProvider } from '@/components/layout/ThemeProvider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthBootstrap } from '@/components/auth/AuthBootstrap'
+import { GoogleOAuthClientProvider } from '@/components/auth/GoogleOAuthClientProvider'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -50,9 +51,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="min-h-screen bg-background font-sans antialiased">
         <AuthBootstrap />
-        <ThemeProvider>
-          <TooltipProvider delay={300}>{children}</TooltipProvider>
-        </ThemeProvider>
+        <GoogleOAuthClientProvider>
+          <ThemeProvider>
+            <TooltipProvider delay={300}>{children}</TooltipProvider>
+          </ThemeProvider>
+        </GoogleOAuthClientProvider>
 
 
         <Script

@@ -11,7 +11,7 @@ import { PasswordInput } from '@/components/ui/password-input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { AuthDivider } from './AuthDivider'
-import { GoogleButton } from './GoogleButton'
+import { GoogleAuthButton } from './GoogleAuthButton'
 
 export function LoginForm() {
   const router = useRouter()
@@ -19,6 +19,7 @@ export function LoginForm() {
   const redirect = searchParams.get('redirect') ?? '/dashboard'
 
   const loginWithEmail = useAuthStore((s) => s.loginWithEmail)
+  const loginWithGoogle = useAuthStore((s) => s.loginWithGoogle)
   const authHydrated = useAuthStore((s) => s._hasHydrated)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
@@ -48,6 +49,19 @@ export function LoginForm() {
     }
   }
 
+  async function handleGoogleSuccess(idToken: string) {
+    setError(null)
+    setLoading(true)
+
+    const { ok, error: loginError } = await loginWithGoogle(idToken)
+    if (ok) {
+      router.push(redirect)
+    } else {
+      setError(loginError ?? 'Google sign-in failed.')
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="mx-auto w-full max-w-sm py-16 px-4">
       <div className="flex flex-col items-center gap-2 mb-8">
@@ -61,13 +75,10 @@ export function LoginForm() {
           <CardDescription>Sign in to continue your IELTS preparation</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <GoogleButton
-            onClick={() => {
-              // Google OAuth: requires Google Client ID in .env.local
-              // Will be enabled once Google:ClientId is configured
-              alert('Google sign-in requires Google Client ID configuration.')
-            }}
-            label="Sign in with Google"
+          <GoogleAuthButton
+            onSuccess={handleGoogleSuccess}
+            onError={() => setError('Google sign-in failed.')}
+            text="signin_with"
           />
 
           <AuthDivider />

@@ -11,11 +11,12 @@ import { PasswordInput } from '@/components/ui/password-input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { AuthDivider } from './AuthDivider'
-import { GoogleButton } from './GoogleButton'
+import { GoogleAuthButton } from './GoogleAuthButton'
 
 export function RegisterForm() {
   const router = useRouter()
   const register = useAuthStore((s) => s.register)
+  const loginWithGoogle = useAuthStore((s) => s.loginWithGoogle)
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -44,6 +45,19 @@ export function RegisterForm() {
     }
   }
 
+  async function handleGoogleSuccess(idToken: string) {
+    setError(null)
+    setLoading(true)
+
+    const { ok, error: loginError } = await loginWithGoogle(idToken)
+    if (ok) {
+      router.push('/dashboard')
+    } else {
+      setError(loginError ?? 'Google sign-in failed.')
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="mx-auto w-full max-w-sm py-16 px-4">
       <div className="flex flex-col items-center gap-2 mb-8">
@@ -57,11 +71,10 @@ export function RegisterForm() {
           <CardDescription>Start preparing for your target band score</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <GoogleButton
-            onClick={() => {
-              alert('Google sign-in requires Google Client ID configuration.')
-            }}
-            label="Sign up with Google"
+          <GoogleAuthButton
+            onSuccess={handleGoogleSuccess}
+            onError={() => setError('Google sign-in failed.')}
+            text="signup_with"
           />
 
           <AuthDivider />

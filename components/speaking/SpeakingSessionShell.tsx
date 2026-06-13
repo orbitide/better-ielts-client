@@ -13,12 +13,8 @@ import { ExamToolbar, ExamSectionTab } from '@/components/exam/ExamToolbar'
 import { ExamResultsScreen } from '@/components/exam/ExamResultsScreen'
 import { examExitHrefs } from '@/lib/utils/exam-routes'
 import { useProgressStore } from '@/lib/store/progress-store'
-
-const PART_FEEDBACK = [
-  { band: 6.5, strengths: ['Good fluency with some hesitation', 'Relevant vocabulary used'], improvements: ['Develop answers further', 'Use more idiomatic expressions'] },
-  { band: 7.0, strengths: ['Well-structured long turn', 'Covered all cue card points'], improvements: ['More complex grammar structures', 'Reduce self-correction'] },
-  { band: 6.5, strengths: ['Good range of opinion language', 'Relevant ideas discussed'], improvements: ['Speculate and hypothesise more', 'Develop abstract ideas further'] },
-]
+import { uploadSpeakingAudio, submitSpeakingSubmission } from '@/lib/api/ielts'
+import type { SpeakingSubmission } from '@/lib/types/speaking'
 
 export function SpeakingSessionShell({ session }: { session: SpeakingSession }) {
   const { markCompleted } = useProgressStore()
@@ -28,8 +24,10 @@ export function SpeakingSessionShell({ session }: { session: SpeakingSession }) 
   const [isRecording, setIsRecording] = useState(false)
   const [prepTime, setPrepTime] = useState(0)
   const [recordingTime, setRecordingTime] = useState(0)
+  const [submission, setSubmission] = useState<SpeakingSubmission | null>(null)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const mediaRef = useRef<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
 
   const currentPart = session.parts[partIdx]
 
@@ -64,6 +62,9 @@ export function SpeakingSessionShell({ session }: { session: SpeakingSession }) 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       mediaRef.current = new MediaRecorder(stream)
+      mediaRef.current.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data)
+      }
       mediaRef.current.start()
     } catch {
       // Graceful fallback — continue without real recording
@@ -87,6 +88,30 @@ export function SpeakingSessionShell({ session }: { session: SpeakingSession }) 
   }, [phase])
 
   useEffect(() => () => clearInterval_(), [])
+
+  const finishSession = async () => {
+    markCompleted(session.id)
+    setPhase('finished')
+
+    let audioUrl: string | undefined
+    if (audioChunksRef.current.length > 0) {
+      try {
+        const mimeType = mediaRef.current?.mimeType || 'audio/webm'
+        const combined = new Blob(audioChunksRef.current, { type: mimeType })
+        const uploadResult = await uploadSpeakingAudio(combined)
+        audioUrl = uploadResult.url
+      } catch {
+        // Continue without audio if upload fails
+      }
+    }
+
+    try {
+      const result = await submitSpeakingSubmission(session.id, audioUrl)
+      setSubmission(result)
+    } catch {
+      // Submission failed silently — results screen shows pending state
+    }
+  }
 
   if (!started) {
     return (
@@ -116,44 +141,34 @@ export function SpeakingSessionShell({ session }: { session: SpeakingSession }) 
         exitHref={examExitHrefs.speaking}
         exitLabel="Return to practice"
       >
-        {session.parts.map((part, i) => {
-          const fb = PART_FEEDBACK[i]
-          return (
-            <div
-              key={part.part}
-              className="mb-4 rounded border border-black/8 bg-[#f8f8f8] p-5 last:mb-0 dark:border-white/8 dark:bg-[#161616]"
-            >
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="font-semibold">
-                  Part {part.part}: {part.topic}
-                </h3>
-                <BandBadge score={fb.band} />
-              </div>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <p className="mb-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                    Strengths
-                  </p>
-                  <ul className="space-y-0.5 text-muted-foreground">
-                    {fb.strengths.map((s) => (
-                      <li key={s}>· {s}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <p className="mb-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
-                    Improve
-                  </p>
-                  <ul className="space-y-0.5 text-muted-foreground">
-                    {fb.improvements.map((s) => (
-                      <li key={s}>· {s}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+        {submission?.feedback ? (
+          <div className="rounded border border-black/8 bg-[#f8f8f8] p-5 dark:border-white/8 dark:bg-[#161616]">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="font-semibold">Overall band score</h3>
+              <BandBadge score={submission.feedback.overallBand} />
             </div>
-          )
-        })}
+            <div className="mb-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+              {[
+                { name: 'Fluency & Coherence', band: submission.feedback.fluencyCoherence },
+                { name: 'Lexical Resource', band: submission.feedback.lexicalResource },
+                { name: 'Grammatical Range', band: submission.feedback.grammaticalRange },
+                { name: 'Pronunciation', band: submission.feedback.pronunciation },
+              ].map((c) => (
+                <div key={c.name} className="rounded border border-black/8 bg-white p-3 text-center dark:border-white/8 dark:bg-[#1e1e1e]">
+                  <p className="mb-1 text-xs text-muted-foreground">{c.name}</p>
+                  <BandBadge score={c.band} />
+                </div>
+              ))}
+            </div>
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">{submission.feedback.comments}</p>
+          </div>
+        ) : (
+          <div className="rounded border border-black/8 bg-[#f8f8f8] p-6 text-center dark:border-white/8 dark:bg-[#161616]">
+            <p className="text-sm text-muted-foreground">
+              Your responses have been submitted. Feedback will be available within 2 hours.
+            </p>
+          </div>
+        )}
         <div className="mt-8 flex gap-3">
           <Button
             variant="outline"
@@ -294,8 +309,7 @@ export function SpeakingSessionShell({ session }: { session: SpeakingSession }) 
                       setPhase('intro')
                       setRecordingTime(0)
                     } else {
-                      setPhase('finished')
-                      markCompleted(session.id)
+                      void finishSession()
                     }
                   }}
                   className="gap-2 rounded-md bg-[#2b2f36] text-white hover:bg-[#3a3f48]"
