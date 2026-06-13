@@ -136,6 +136,7 @@ export function CallShell() {
   const peerRef = useRef<RTCPeerConnection | null>(null)
   const localStreamRef = useRef<MediaStream | null>(null)
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null)
+  const remoteStreamRef = useRef<MediaStream | null>(null)
   const iceQueueRef = useRef(new PendingIceQueue())
   const isInitiatorRef = useRef(false)
   const audioLevelCleanupRef = useRef<(() => void) | null>(null)
@@ -162,6 +163,7 @@ export function CallShell() {
       remoteAudioRef.current.srcObject = null
       remoteAudioRef.current.muted = false
     }
+    remoteStreamRef.current = null
     iceQueueRef.current = new PendingIceQueue()
     setAudioLevel(0)
     setMicError(null)
@@ -176,6 +178,7 @@ export function CallShell() {
         void sendSignal({ sessionId, type: 'ice-candidate', data: JSON.stringify(candidate) })
       },
       onRemoteStream: (stream) => {
+        remoteStreamRef.current = stream
         if (remoteAudioRef.current) remoteAudioRef.current.srcObject = stream
       },
     })
@@ -646,7 +649,15 @@ export function CallShell() {
           }
         />
 
-        <audio ref={remoteAudioRef} autoPlay playsInline className="hidden" />
+        <audio
+          ref={(el) => {
+            remoteAudioRef.current = el
+            if (el && remoteStreamRef.current) el.srcObject = remoteStreamRef.current
+          }}
+          autoPlay
+          playsInline
+          className="hidden"
+        />
 
         <div className="flex flex-1 flex-col items-center justify-between gap-6 overflow-hidden p-6 bg-[#f8f8f8] dark:bg-[#181818]">
           {micError && (
