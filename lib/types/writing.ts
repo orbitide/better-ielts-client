@@ -29,3 +29,26 @@ export type WritingTaskSummary = {
   wordMinimum: number
   timeMinutes: number
 }
+
+export type WritingFeedback = {
+  id: string
+  overallBand: number
+  taskAchievement: number
+  coherenceCohesion: number
+  lexicalResource: number
+  grammaticalRange: number
+  comments: string
+  createdAt: string
+}
+
+export type WritingSubmission = {
+  id: string
+  writingTaskId: string
+  taskTitle: string
+  taskType: 'task1' | 'task2'
+  response: string
+  wordCount: number
+  status: string
+  createdAt: string
+  feedback: WritingFeedback | null
+}

@@ -1,5 +1,7 @@
 import { httpClient } from '@/lib/api/http'
 import type { PagedResult } from '@/lib/types/paged-result'
+import type { WritingSubmission } from '@/lib/types/writing'
+import type { SpeakingSubmission } from '@/lib/types/speaking'
 
 // ─── Listening ───────────────────────────────────────────────────────────────
 
@@ -77,6 +79,11 @@ export async function fetchWritingTask(id: string) {
   return data.data as unknown
 }
 
+export async function submitWritingSubmission(writingTaskId: string, response: string, wordCount: number) {
+  const { data } = await httpClient.post('/api/ielts/writing/submissions', { writingTaskId, response, wordCount })
+  return data.data as WritingSubmission
+}
+
 // ─── Speaking ────────────────────────────────────────────────────────────────
 
 export async function fetchSpeakingSessions(page = 1, pageSize = 50) {
@@ -92,6 +99,20 @@ export async function fetchSpeakingSession(id: string) {
   const parts = (partsData.data ?? []) as Record<string, unknown>[]
 
   return { ...session, parts } as unknown
+}
+
+export async function uploadSpeakingAudio(audio: Blob) {
+  const formData = new FormData()
+  formData.append('audio', audio, 'session-recording.webm')
+  const { data } = await httpClient.post('/api/ielts/speaking/submissions/audio', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return data.data as { url: string }
+}
+
+export async function submitSpeakingSubmission(speakingSessionId: string, audioUrl?: string, notes?: string) {
+  const { data } = await httpClient.post('/api/ielts/speaking/submissions', { speakingSessionId, audioUrl, notes })
+  return data.data as SpeakingSubmission
 }
 
 // ─── Vocabulary ───────────────────────────────────────────────────────────────

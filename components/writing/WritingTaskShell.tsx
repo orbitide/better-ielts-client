@@ -18,21 +18,8 @@ import { ExamFooter } from '@/components/exam/ExamFooter'
 import { ExamResultsScreen } from '@/components/exam/ExamResultsScreen'
 import { examExitHrefs } from '@/lib/utils/exam-routes'
 import { useProgressStore } from '@/lib/store/progress-store'
-
-const MOCK_FEEDBACK = {
-  overallBand: 6.5,
-  criteria: [
-    { name: 'Task Achievement', band: 6.5, feedback: 'Your response addresses the task requirements adequately. The position is clear, but some ideas could be developed more fully with specific examples.' },
-    { name: 'Coherence & Cohesion', band: 7.0, feedback: 'Ideas are generally well-organised with a clear progression. Linking devices are used effectively, though some paragraphs could be better connected.' },
-    { name: 'Lexical Resource', band: 6.5, feedback: 'A sufficient range of vocabulary is used with some less common items. There are occasional inaccuracies in word choice and collocation.' },
-    { name: 'Grammatical Range & Accuracy', band: 6.0, feedback: 'A mix of simple and complex sentence structures is used. There are some grammatical errors which occasionally impede communication.' },
-  ],
-  improvements: [
-    'Try to include more specific examples or statistics to support your arguments.',
-    'Vary your sentence structure more — aim for a mix of complex and compound sentences.',
-    'Replace some high-frequency words with more precise academic vocabulary.',
-  ],
-}
+import { submitWritingSubmission } from '@/lib/api/ielts'
+import type { WritingSubmission } from '@/lib/types/writing'
 
 export function WritingTaskShell({ task }: { task: WritingTask }) {
   const { markCompleted } = useProgressStore()
@@ -40,8 +27,22 @@ export function WritingTaskShell({ task }: { task: WritingTask }) {
   const [text, setText] = useState('')
   const [timeLeft, setTimeLeft] = useState(task.timeMinutes * 60)
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submission, setSubmission] = useState<WritingSubmission | null>(null)
   const [showSample, setShowSample] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  async function handleSubmit() {
+    setSubmitting(true)
+    try {
+      const result = await submitWritingSubmission(task.id, text, wordCount)
+      setSubmission(result)
+      markCompleted(task.id)
+      setSubmitted(true)
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0
   const wordProgress = Math.min(100, (wordCount / task.wordMinimum) * 100)
@@ -78,49 +79,57 @@ export function WritingTaskShell({ task }: { task: WritingTask }) {
   }
 
   if (submitted) {
+    const feedback = submission?.feedback
+
     return (
       <ExamResultsScreen
         module={`Writing — ${task.type === 'task1' ? 'Task 1' : 'Task 2'}`}
         title="Submission received"
-        subtitle={`${task.title} · AI feedback based on IELTS marking criteria`}
+        subtitle={`${task.title} · ${feedback ? 'Feedback based on IELTS marking criteria' : 'Your response is being reviewed'}`}
         exitHref={examExitHrefs.writing}
         exitLabel="Return to practice"
         wide
       >
-        <div className="rounded border border-black/8 bg-[#f8f8f8] p-6 text-center dark:border-white/8 dark:bg-[#161616]">
-          <p className="mb-2 text-sm text-muted-foreground">Estimated band score</p>
-          <BandBadge score={MOCK_FEEDBACK.overallBand} className="px-5 py-2 text-xl" />
-          <p className="mt-2 text-xs text-muted-foreground">Words written: {wordCount}</p>
-        </div>
-
-        <div className="mt-6 space-y-4">
-          {MOCK_FEEDBACK.criteria.map((c) => (
-            <div
-              key={c.name}
-              className="rounded border border-black/8 bg-[#f8f8f8] p-4 dark:border-white/8 dark:bg-[#161616]"
-            >
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <p className="min-w-0 text-sm font-semibold">{c.name}</p>
-                <BandBadge score={c.band} className="shrink-0" />
-              </div>
-              <p className="text-sm leading-relaxed text-muted-foreground">{c.feedback}</p>
+        {feedback ? (
+          <>
+            <div className="rounded border border-black/8 bg-[#f8f8f8] p-6 text-center dark:border-white/8 dark:bg-[#161616]">
+              <p className="mb-2 text-sm text-muted-foreground">Estimated band score</p>
+              <BandBadge score={feedback.overallBand} className="px-5 py-2 text-xl" />
+              <p className="mt-2 text-xs text-muted-foreground">Words written: {wordCount}</p>
             </div>
-          ))}
-        </div>
 
-        <div className="mt-6 rounded border border-black/8 bg-[#f8f8f8] p-5 dark:border-white/8 dark:bg-[#161616]">
-          <h3 className="mb-3 font-semibold">Key improvements</h3>
-          <ul className="space-y-2">
-            {MOCK_FEEDBACK.improvements.map((imp, i) => (
-              <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-[#2b2f36]/10 text-xs font-bold text-[#2b2f36] dark:text-white/80">
-                  {i + 1}
-                </span>
-                {imp}
-              </li>
-            ))}
-          </ul>
-        </div>
+            <div className="mt-6 space-y-4">
+              {[
+                { name: 'Task Achievement', band: feedback.taskAchievement },
+                { name: 'Coherence & Cohesion', band: feedback.coherenceCohesion },
+                { name: 'Lexical Resource', band: feedback.lexicalResource },
+                { name: 'Grammatical Range & Accuracy', band: feedback.grammaticalRange },
+              ].map((c) => (
+                <div
+                  key={c.name}
+                  className="rounded border border-black/8 bg-[#f8f8f8] p-4 dark:border-white/8 dark:bg-[#161616]"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="min-w-0 text-sm font-semibold">{c.name}</p>
+                    <BandBadge score={c.band} className="shrink-0" />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 rounded border border-black/8 bg-[#f8f8f8] p-5 dark:border-white/8 dark:bg-[#161616]">
+              <h3 className="mb-3 font-semibold">Examiner comments</h3>
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">{feedback.comments}</p>
+            </div>
+          </>
+        ) : (
+          <div className="rounded border border-black/8 bg-[#f8f8f8] p-6 text-center dark:border-white/8 dark:bg-[#161616]">
+            <p className="text-sm text-muted-foreground">
+              Your response has been submitted. Feedback will be available within 2 hours.
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">Words written: {wordCount}</p>
+          </div>
+        )}
 
         {text.trim() && (
           <div className="mt-6 rounded border border-black/8 bg-[#f8f8f8] p-5 dark:border-white/8 dark:bg-[#161616]">
@@ -249,12 +258,12 @@ export function WritingTaskShell({ task }: { task: WritingTask }) {
 
       <ExamFooter className="justify-end">
         <Button
-          onClick={() => { setSubmitted(true); markCompleted(task.id) }}
-          disabled={wordCount < Math.round(task.wordMinimum * 0.7)}
+          onClick={handleSubmit}
+          disabled={submitting || wordCount < Math.round(task.wordMinimum * 0.7)}
           className="gap-2 rounded-md bg-[#2b2f36] text-white hover:bg-[#3a3f48] disabled:opacity-50"
         >
           <CheckCircle className="size-4" />
-          Submit response
+          {submitting ? 'Submitting...' : 'Submit response'}
         </Button>
       </ExamFooter>
     </div>
