@@ -1,20 +1,14 @@
 import { notFound } from 'next/navigation'
 import {
-  PRACTICE_SKILLS,
   getSkillPracticeGroup,
   getSkillPracticeRecommendation,
   isPracticeSkill,
 } from '@/lib/data/practice'
 import { SkillPracticeHub } from '@/components/practice/SkillPracticeHub'
 
-export const revalidate = 60
 
 type PageProps = {
   params: Promise<{ skill: string }>
-}
-
-export function generateStaticParams() {
-  return PRACTICE_SKILLS.map((skill) => ({ skill }))
 }
 
 export async function generateMetadata({ params }: PageProps) {

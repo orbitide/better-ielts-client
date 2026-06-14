@@ -1,4 +1,3 @@
-import { cache } from 'react'
 import { getCurrentUser } from '@/lib/data/users'
 import { getStudyPlan } from '@/lib/data/study-plan'
 import { getAllReadingTests } from '@/lib/data/reading'
@@ -10,13 +9,13 @@ import type { BandScore, User } from '@/lib/types/user'
 const GUEST_BAND: BandScore = { overall: 5, listening: 5, reading: 5, writing: 5, speaking: 5 }
 const GUEST_TARGET_BAND = 7
 
-const getCurrentUserOrNull = cache(async (): Promise<User | null> => {
+const getCurrentUserOrNull = async (): Promise<User | null> => {
   try {
     return await getCurrentUser()
   } catch {
     return null
   }
-})
+}
 
 export type PracticeSkill = 'reading' | 'listening' | 'writing' | 'speaking'
 
@@ -82,7 +81,7 @@ function findWeakestSkill(bands: BandScore, target: number): PracticeSkill {
   })
 }
 
-export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> => {
+export const getPracticeCatalog = async (): Promise<PracticeSkillGroup[]> => {
   const [reading, listening, writing, speaking] = await Promise.all([
     getAllReadingTests(),
     getAllListeningTests(),
@@ -162,14 +161,14 @@ export const getPracticeCatalog = cache(async (): Promise<PracticeSkillGroup[]> 
         })),
     },
   ]
-})
+}
 
-export const getSkillPracticeGroup = cache(async (skill: PracticeSkill): Promise<PracticeSkillGroup | null> => {
+export const getSkillPracticeGroup = async (skill: PracticeSkill): Promise<PracticeSkillGroup | null> => {
   const catalog = await getPracticeCatalog()
   return catalog.find((g) => g.skill === skill) ?? null
-})
+}
 
-export const getSkillPracticeRecommendation = cache(async (skill: PracticeSkill): Promise<PracticeRecommendation> => {
+export const getSkillPracticeRecommendation = async (skill: PracticeSkill): Promise<PracticeRecommendation> => {
   const [user, plan, group] = await Promise.all([
     getCurrentUserOrNull(),
     getStudyPlan(),
@@ -237,9 +236,9 @@ export const getSkillPracticeRecommendation = cache(async (skill: PracticeSkill)
     href: group.href,
     duration: '',
   }
-})
+}
 
-export const getPracticeRecommendation = cache(async (): Promise<PracticeRecommendation> => {
+export const getPracticeRecommendation = async (): Promise<PracticeRecommendation> => {
   const [user, plan, catalog] = await Promise.all([
     getCurrentUserOrNull(),
     getStudyPlan(),
@@ -297,4 +296,4 @@ export const getPracticeRecommendation = cache(async (): Promise<PracticeRecomme
     duration: recommendedTest.duration,
     bandGap,
   }
-})
+}
