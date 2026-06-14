@@ -7,6 +7,8 @@ import {
 } from '@/lib/data/practice'
 import { SkillPracticeHub } from '@/components/practice/SkillPracticeHub'
 
+export const revalidate = 60
+
 type PageProps = {
   params: Promise<{ skill: string }>
 }

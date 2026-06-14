@@ -6,6 +6,8 @@ import { buttonVariants } from '@/components/ui/button-variants'
 import { cn } from '@/lib/utils'
 import { ClipboardList } from 'lucide-react'
 
+export const revalidate = 60
+
 export const metadata = {
   title: 'Practice Tests',
   description:

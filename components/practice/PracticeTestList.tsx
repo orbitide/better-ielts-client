@@ -8,7 +8,6 @@ import { useProgressStore } from '@/lib/store/progress-store'
 import { cn } from '@/lib/utils'
 
 type FilterOption = 'all' | 'completed' | 'not-started'
-type TaskTypeFilter = 'all' | 'task1' | 'task2'
 
 function groupBySeries(tests: PracticeTestItem[]) {
   return tests.reduce<{ series: PracticeTestSeries | undefined; tests: PracticeTestItem[] }[]>(
@@ -32,35 +31,23 @@ const FILTERS: { value: FilterOption; label: string }[] = [
   { value: 'completed', label: 'Completed' },
 ]
 
-const TASK_TYPE_FILTERS: { value: TaskTypeFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'task1', label: 'Task 1' },
-  { value: 'task2', label: 'Task 2' },
-]
-
 export function PracticeTestList({
   tests,
   recommendedHref,
   color,
-  initialTaskType,
 }: {
   tests: PracticeTestItem[]
   recommendedHref?: string
   color: string
-  initialTaskType?: 'task1' | 'task2'
 }) {
   const [filter, setFilter] = useState<FilterOption>('all')
-  const [taskTypeFilter, setTaskTypeFilter] = useState<TaskTypeFilter>(initialTaskType ?? 'all')
   const { completedIds, _hasHydrated } = useProgressStore()
 
   const isCompleted = (id: string) => _hasHydrated && completedIds.includes(id)
 
-  const hasTaskTypes = tests.some((t) => t.taskType)
-
   const filtered = tests.filter((t) => {
-    if (filter === 'completed' && !isCompleted(t.id)) return false
-    if (filter === 'not-started' && isCompleted(t.id)) return false
-    if (taskTypeFilter !== 'all' && t.taskType !== taskTypeFilter) return false
+    if (filter === 'completed') return isCompleted(t.id)
+    if (filter === 'not-started') return !isCompleted(t.id)
     return true
   })
 
@@ -85,26 +72,6 @@ export function PracticeTestList({
           </button>
         ))}
       </div>
-
-      {/* Task type filter chips */}
-      {hasTaskTypes && (
-        <div className="flex items-center gap-2">
-          {TASK_TYPE_FILTERS.map(({ value, label }) => (
-            <button
-              key={value}
-              onClick={() => setTaskTypeFilter(value)}
-              className={cn(
-                'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
-                taskTypeFilter === value
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-border/60 bg-card text-muted-foreground hover:border-border hover:text-foreground',
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* List */}
       {groups.length === 0 ? (

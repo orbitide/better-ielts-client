@@ -4,7 +4,6 @@ import type {
   TopicChangedPayload,
   PartnerLeftPayload,
   CallEndedPayload,
-  QueueCountChangedPayload,
   CallSignalPayload,
 } from '@/lib/types/call'
 
@@ -108,7 +107,7 @@ export function onCallEnded(handler: (payload: CallEndedPayload) => void) {
   return () => conn.off('CallEnded', handler)
 }
 
-export function onQueueCountChanged(handler: (payload: QueueCountChangedPayload) => void) {
+export function onQueueCountChanged(handler: (count: number) => void) {
   const conn = getConnection()
   conn.on('QueueCountChanged', handler)
   return () => conn.off('QueueCountChanged', handler)

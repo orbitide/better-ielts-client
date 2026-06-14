@@ -52,10 +52,6 @@ export type CallEndedPayload = {
   endedBy: 'self' | 'partner'
 }
 
-export type QueueCountChangedPayload = {
-  count: number
-}
-
 // ─── SignalR: WebRTC signaling relay ────────────────────────────────────────
 export type CallSignalPayload = {
   sessionId: string

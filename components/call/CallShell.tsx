@@ -334,8 +334,8 @@ export function CallShell() {
       handleSessionEnd({ reason: 'callEnded', payload })
     })
 
-    const offQueueCountChanged = onQueueCountChanged((payload) => {
-      setQueueCount(payload.count)
+    const offQueueCountChanged = onQueueCountChanged((count) => {
+      setQueueCount(count)
     })
 
     const offReceiveSignal = onReceiveSignal((payload) => {

@@ -13,11 +13,9 @@ const skillIcons = {
 export function SkillPracticeHub({
   group,
   recommendation,
-  initialTaskType,
 }: {
   group: PracticeSkillGroup
   recommendation: PracticeRecommendation
-  initialTaskType?: 'task1' | 'task2'
 }) {
   const Icon = skillIcons[group.skill]
 
@@ -45,9 +43,11 @@ export function SkillPracticeHub({
         </div>
 
         {/* Recommended */}
-        <div className="mb-8">
-          <RecommendedPracticeCard recommendation={recommendation} />
-        </div>
+        {recommendation.reason !== 'No tests available yet' && (
+          <div className="mb-8">
+            <RecommendedPracticeCard recommendation={recommendation} />
+          </div>
+        )}
 
         {/* All tests */}
         <div>
@@ -58,7 +58,6 @@ export function SkillPracticeHub({
             tests={group.tests}
             recommendedHref={recommendation.href}
             color={group.color}
-            initialTaskType={initialTaskType}
           />
         </div>
       </div>
